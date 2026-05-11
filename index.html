@@ -64,8 +64,8 @@ select option{background:#5c2a0a;color:#fdf6ee}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--orange-mid),#f0a060);border-radius:2px;transition:width .4s ease}
 
 /* CARD */
-.qcard{background:rgba(255,255,255,.97);border-radius:var(--r);padding:1.1rem 1.4rem 1rem;
-  border:none;margin-bottom:.65rem;position:relative;overflow:hidden;
+.qcard{background:rgba(255,255,255,.97);border-radius:var(--r);padding:.8rem 1.2rem .7rem;
+  border:none;margin-bottom:.5rem;position:relative;overflow:hidden;
   box-shadow:0 4px 20px rgba(42,26,14,.35)}
 .qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
   background:linear-gradient(90deg,var(--brown),var(--orange),var(--orange-mid),var(--orange),var(--brown))}
@@ -75,16 +75,16 @@ select option{background:#5c2a0a;color:#fdf6ee}
 .qzone:not(:empty)::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--orange);flex-shrink:0}
 
 /* CHEESE PHOTO */
-.cheese-img{width:100%;max-height:260px;object-fit:contain;border-radius:var(--rs);margin-bottom:.65rem;background:#f5f0e8}
+.cheese-img{width:100%;max-height:190px;object-fit:contain;border-radius:var(--rs);margin-bottom:.4rem;background:#f5f0e8}
 .cheese-img-wrap{position:relative}
 .cheese-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   background:rgba(42,26,14,.15);border-radius:var(--rs);font-size:.8rem;color:rgba(253,246,238,.7)}
 
 /* CHOICES */
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.choice{padding:.65rem .85rem;border-radius:var(--rs);border:1.5px solid rgba(255,255,255,.25);
+.choice{padding:.55rem .75rem;border-radius:var(--rs);border:1.5px solid rgba(255,255,255,.25);
   background:rgba(255,255,255,.1);cursor:pointer;font-family:'DM Sans',sans-serif;
-  font-size:.84rem;font-weight:400;color:#fdf6ee;text-align:left;line-height:1.3;
+  font-size:.82rem;font-weight:400;color:#fdf6ee;text-align:left;line-height:1.3;
   transition:border-color .14s,background .14s,transform .1s;backdrop-filter:blur(4px)}
 .choice:not([disabled]):hover{border-color:var(--orange-mid);background:rgba(232,133,74,.25);transform:translateY(-1px)}
 .choice:not([disabled]):active{transform:translateY(0)}
@@ -161,7 +161,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
   </div>
   <div class="hud">
     <div class="hud-lives" id="cap-hearts"></div>
-    <div class="hud-score">Score&thinsp;: <strong id="cap-score">0</strong>&thinsp;/&thinsp;<span id="cap-total">0</span></div>
+    <div class="hud-score">ScoreScore&thinsp;: <strong id="cap-score">0</strong>thinsp;: <strong id="cap-score">0</strong></div>
     <div class="hud-streak" id="cap-streak"></div>
   </div>
   <div class="prog"><div class="prog-fill" id="cap-prog" style="width:0%"></div></div>
@@ -197,7 +197,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
   </div>
   <div class="hud">
     <div class="hud-lives" id="dep-hearts"></div>
-    <div class="hud-score">Score&thinsp;: <strong id="dep-score">0</strong>&thinsp;/&thinsp;<span id="dep-total">0</span></div>
+    <div class="hud-score">Score&thinsp;: <strong id="dep-score">0</strong></div>
     <div class="hud-streak" id="dep-streak"></div>
   </div>
   <div class="prog"><div class="prog-fill" id="dep-prog" style="width:0%"></div></div>
@@ -236,7 +236,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
   </div>
   <div class="hud">
     <div class="hud-lives" id="cha-hearts"></div>
-    <div class="hud-score">Score&thinsp;: <strong id="cha-score">0</strong>&thinsp;/&thinsp;<span id="cha-total">0</span></div>
+    <div class="hud-score">Score&thinsp;: <strong id="cha-score">0</strong></div>
     <div class="hud-streak" id="cha-streak"></div>
   </div>
   <div class="prog"><div class="prog-fill" id="cha-prog" style="width:0%"></div></div>
@@ -280,7 +280,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
   </div>
   <div class="hud">
     <div class="hud-lives" id="fro-hearts"></div>
-    <div class="hud-score">Score&thinsp;: <strong id="fro-score">0</strong>&thinsp;/&thinsp;<span id="fro-total">0</span></div>
+    <div class="hud-score">Score&thinsp;: <strong id="fro-score">0</strong></div>
     <div class="hud-streak" id="fro-streak"></div>
   </div>
   <div class="prog"><div class="prog-fill" id="fro-prog" style="width:0%"></div></div>
@@ -319,7 +319,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
   </div>
   <div class="hud">
     <div class="hud-lives" id="vin-hearts"></div>
-    <div class="hud-score">Score&thinsp;: <strong id="vin-score">0</strong>&thinsp;/&thinsp;<span id="vin-total">0</span></div>
+    <div class="hud-score">Score&thinsp;: <strong id="vin-score">0</strong></div>
     <div class="hud-streak" id="vin-streak"></div>
   </div>
   <div class="prog"><div class="prog-fill" id="vin-prog" style="width:0%"></div></div>
@@ -682,7 +682,10 @@ const CHA=[
   {t:"Il est cinq heures, Paris s'éveille",a:"Jacques Dutronc",pays:"France"},
   {t:"La ballade des gens heureux",a:"Gérard Lenorman",pays:"France"},
   {t:"Quelque chose de Tennessee",a:"Johnny Hallyday",pays:"France"},
-  {t:"Diego, libre dans sa tête",a:"Johnny Hallyday",pays:"France"},
+  {t:"Quelques mots d'amour",a:"Michel Berger",pays:"France"},
+  {t:"La groupie du pianiste",a:"France Gall",pays:"France"},
+  {t:"Résiste",a:"France Gall",pays:"France"},
+  {t:"Évidemment",a:"France Gall",pays:"France"},
   {t:"Et moi, et moi, et moi",a:"Jacques Dutronc",pays:"France"},
   {t:"Belles belles belles",a:"Claude François",pays:"France"},
   {t:"Elle est d'ailleurs",a:"Pierre Bachelet",pays:"France"},
@@ -799,7 +802,9 @@ function evalCha(btn,chosen,correct,div,q){
   else{chScore++;chStr++;playOk()}
   const fb=document.getElementById('cha-fb');
   fb.className='fb '+(ok?'cor':'wrg');
-  fb.innerHTML=(ok?'<div class="fb-main">✓ '+correct+'</div>':'<div class="fb-main">✗ '+correct+'</div>');
+  fb.innerHTML=ok
+    ?'<div class="fb-main">✓ '+correct+'</div>'
+    :'<div class="fb-main">✗ C\'était : '+correct+'</div>';
   chI++;updCha();document.getElementById('cha-next').classList.add('on');
 }
 function nextCha(){showCha()}
@@ -866,16 +871,16 @@ const FRO=[
   {nom:"Emmental de Savoie (IGP)",fam:'Les "Quotidiens ou Culinaires"',lait:"Vache",reg:["Rhône-Alpes"],img:P+"vr_emmentalsavoie-400x300.jpg"},
   {nom:"Emmental grand cru Est-Central",fam:'Les "Quotidiens ou Culinaires"',lait:"Vache",reg:["Franche-Comté","Rhône-Alpes"],img:P+"900899_h1-400x300.jpg"},
   {nom:"Époisses",fam:'Les "Authentiques"',lait:"Vache",reg:["Bourgogne"],img:P+"vr_epoisses-400x300.jpg"},
-  {nom:"Faisselle",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:[],img:P+"fromagefondu2-400x300.jpg"},
+  {nom:"Faisselle",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:[],img:""},
   {nom:"Fourme d'Ambert",fam:'Les "Bleus"',lait:"Vache",reg:["Auvergne"],img:P+"vr_fourmeambert-400x300.jpg"},
   {nom:"Fourme de Montbrison",fam:'Les "Bleus"',lait:"Vache",reg:["Rhône-Alpes"],img:P+"vr_fourme_montbrison-400x300.jpg"},
   {nom:"Gouda français",fam:'Les "Quotidiens ou Culinaires"',lait:"Vache",reg:["Nord-Pas-de-Calais"],img:P+"goudafrancais-400x300.jpg"},
   {nom:"Gruyère",fam:'Les "Quotidiens ou Culinaires"',lait:"Vache",reg:["Franche-Comté","Rhône-Alpes"],img:P+"vr_gruyere-400x300.jpg"},
   {nom:"Kiri",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:["Pays de la Loire"],img:P+"kiri-400x300.jpg"},
-  {nom:"La vache qui rit",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:["Franche-Comté"],img:P+"fromagefondu2-400x300.jpg"},
+  {nom:"La vache qui rit",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:["Franche-Comté"],img:""},
   {nom:"Laguiole",fam:'Les "Authentiques"',lait:"Vache",reg:["Midi-Pyrénées"],img:P+"vr_laguiole-400x300.jpg"},
   {nom:"Langres",fam:'Les "Authentiques"',lait:"Vache",reg:["Champagne-Ardenne"],img:P+"vr_langres-400x300.jpg"},
-  {nom:"Livarot",fam:'Les "Authentiques"',lait:"Vache",reg:["Normandie"],img:P+"vr_stmarcellin2-400x300.jpg"},
+  {nom:"Livarot",fam:'Les "Authentiques"',lait:"Vache",reg:["Normandie"],img:""},
   {nom:"Mâconnais",fam:'Les "Chèvres et Brebis"',lait:"Chèvre",reg:["Bourgogne"],img:P+"vr_maconnais-400x300.jpg"},
   {nom:"Maroilles",fam:'Les "Authentiques"',lait:"Vache",reg:["Champagne-Ardenne","Nord-Pas-de-Calais","Picardie"],img:P+"vr_maroilles-400x300.jpg"},
   {nom:"Mimolette",fam:'Les "Authentiques"',lait:"Vache",reg:["Nord-Pas-de-Calais"],img:P+"mimolette-400x300.jpg"},
@@ -883,15 +888,15 @@ const FRO=[
   {nom:"Morbier",fam:'Les "Authentiques"',lait:"Vache",reg:["Franche-Comté"],img:P+"vr_morbier-400x300.jpg"},
   {nom:"Mottin Charentais",fam:'Les "Traditions" du quotidien',lait:"Vache",reg:["Poitou-Charentes"],img:P+"mottincharentais-400x300.jpg"},
   {nom:"Munster",fam:'Les "Authentiques"',lait:"Vache",reg:["Alsace","Lorraine"],img:P+"vr_munster-400x300.jpg"},
-  {nom:"Neufchâtel",fam:'Les "Authentiques"',lait:"Vache",reg:["Normandie"],img:P+"brienonaop-400x300.jpg"},
+  {nom:"Neufchâtel",fam:'Les "Authentiques"',lait:"Vache",reg:["Normandie"],img:""},
   {nom:"Ossau fermier",fam:'Les "Traditions" du quotidien',lait:"Brebis",reg:["Aquitaine"],img:P+"ossauiraty-400x300.jpg"},
   {nom:"Ossau-Iraty",fam:'Les "Authentiques"',lait:"Brebis",reg:["Aquitaine"],img:P+"ossauiraty-400x300.jpg"},
   {nom:"Pélardon",fam:'Les "Chèvres et Brebis"',lait:"Chèvre",reg:["Languedoc-Roussillon"],img:P+"vr_pelardon-400x300.jpg"},
   {nom:"Pérail",fam:'Les "Chèvres et Brebis"',lait:"Brebis",reg:["Midi-Pyrénées"],img:P+"vr_perail3-400x300.jpg"},
   {nom:"Petit Billy",fam:'Les "Chèvres et Brebis"',lait:"Chèvre",reg:["Bretagne"],img:P+"petitbilly-400x300.jpg"},
-  {nom:"Petit suisse",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:["Normandie"],img:P+"brienonaop-400x300.jpg"},
+  {nom:"Petit suisse",fam:'Les "Frais et Tartinables"',lait:"Vache",reg:["Normandie"],img:""},
   {nom:"Picodon",fam:'Les "Chèvres et Brebis"',lait:"Chèvre",reg:["Rhône-Alpes"],img:P+"vr_picodon-400x300.jpg"},
-  {nom:"Pont-l'Évêque",fam:'Les "Traditions" du quotidien',lait:"Vache",reg:["Normandie"],img:P+"vr_a-stpaulin21-400x300.jpg"},
+  {nom:"Pont-l'Évêque",fam:'Les "Traditions" du quotidien',lait:"Vache",reg:["Normandie"],img:""},
   {nom:"Pouligny Saint-Pierre",fam:'Les "Authentiques"',lait:"Chèvre",reg:["Centre"],img:P+"vr_poulignystpierre-400x300.jpg"},
   {nom:"Raclette",fam:'Les "Fondus"',lait:"Vache",reg:["Franche-Comté","Rhône-Alpes"],img:P+"raclette-400x300.jpg"},
   {nom:"Reblochon",fam:'Les "Traditions" du quotidien',lait:"Vache",reg:["Rhône-Alpes"],img:P+"vr_reblochon-400x300.jpg"},
