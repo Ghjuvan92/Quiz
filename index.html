@@ -15,7 +15,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;
-  display:flex;flex-direction:column;align-items:center;padding:1.75rem 1rem 3rem;
+  display:flex;flex-direction:column;align-items:center;padding:1.25rem 1rem 2rem;
   background:radial-gradient(ellipse 120% 60% at 30% 20%,rgba(196,82,18,0) 0%,#7a3b10 45%,#4a2008 100%),
              linear-gradient(160deg,#a04010 0%,#6a2e08 40%,#3a1804 100%)}
 
@@ -53,29 +53,34 @@ select option{background:#5c2a0a;color:#fdf6ee}
 .mtog.on{background:var(--orange);color:white;border-color:var(--orange)}
 
 /* HUD */
-.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
 .hud-lives{display:flex;gap:4px}
 .hud-score{font-size:.78rem;color:rgba(253,246,238,.6)}
 .hud-score strong{color:#fdf6ee;font-weight:500}
 .hud-streak{font-size:.78rem;color:var(--orange-mid);font-weight:500;min-width:44px;text-align:right}
 
 /* PROGRESS */
-.prog{height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:.9rem}
+.prog{height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:.6rem}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--orange-mid),#f0a060);border-radius:2px;transition:width .4s ease}
 
 /* CARD */
-.qcard{background:rgba(255,255,255,.97);border-radius:var(--r);padding:.8rem 1.2rem .7rem;
-  border:none;margin-bottom:.5rem;position:relative;overflow:hidden;
+.qcard{background:rgba(255,255,255,.97);border-radius:var(--r);padding:.65rem 1.1rem .6rem;
+  border:none;margin-bottom:.45rem;position:relative;overflow:hidden;
   box-shadow:0 4px 20px rgba(42,26,14,.35)}
 .qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
   background:linear-gradient(90deg,var(--brown),var(--orange),var(--orange-mid),var(--orange),var(--brown))}
-.qlabel{font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.45rem;font-weight:500}
+.qlabel{font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem;font-weight:500}
 .qtext{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,4vw,1.75rem);font-weight:400;line-height:1.2;color:var(--ink);text-align:center}
 .qzone{font-size:.72rem;color:var(--ink-3);margin-top:.35rem;display:flex;align-items:center;gap:5px}
 .qzone:not(:empty)::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--orange);flex-shrink:0}
 
-/* CHEESE PHOTO */
-.cheese-img{width:100%;max-height:190px;object-fit:contain;border-radius:var(--rs);margin-bottom:.4rem;background:#f5f0e8}
+/* FILTERS-HUD combined */
+.filters-hud{display:flex;gap:6px;margin-bottom:.6rem;flex-wrap:nowrap;align-items:center}
+.filters-hud .hud-lives{display:flex;gap:3px;margin-left:auto}
+.filters-hud .hud-score{font-size:.78rem;color:rgba(253,246,238,.6);white-space:nowrap}
+.filters-hud .hud-score strong{color:#fdf6ee;font-weight:500}
+.filters-hud .hud-streak{font-size:.78rem;color:var(--orange-mid);font-weight:500;white-space:nowrap}
+.cheese-img{width:100%;max-height:155px;object-fit:contain;border-radius:var(--rs);margin-bottom:.3rem;background:#f5f0e8}
 .cheese-img-wrap{position:relative}
 .cheese-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   background:rgba(42,26,14,.15);border-radius:var(--rs);font-size:.8rem;color:rgba(253,246,238,.7)}
@@ -265,7 +270,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
 
 <!-- ══ FROMAGES ══ -->
 <div id="panel-fro" class="panel">
-  <div class="filters">
+  <div class="filters-hud">
     <span class="fl">Famille</span>
     <select id="fro-fam" onchange="resetFro()">
       <option value="all">Toutes</option>
@@ -277,8 +282,6 @@ select option{background:#5c2a0a;color:#fdf6ee}
       <option value='Les "Quotidiens ou Culinaires"'>Quotidiens</option>
       <option value='Les "Traditions" du quotidien'>Traditions</option>
     </select>
-  </div>
-  <div class="hud">
     <div class="hud-lives" id="fro-hearts"></div>
     <div class="hud-score">Score&thinsp;: <strong id="fro-score">0</strong><span id="fro-total" style="display:none">0</span></div>
     <div class="hud-streak" id="fro-streak"></div>
