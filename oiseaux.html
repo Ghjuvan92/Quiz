@@ -155,7 +155,14 @@ const OISEAUX=[
   {n:"Troglodyte Mignon",niv:2,mp3:"troglodyte-mignon.mp3",jpg:"troglodyte-mignon.jpg"},
 ];
 
-const shuf=a=>[...a].sort(()=>Math.random()-.5);
+function shuf(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [b[i],b[j]]=[b[j],b[i]];
+  }
+  return b;
+}
 const msg=p=>p===100?'🏆 Score parfait !':p>=80?'Excellent !':p>=60?'Bien joué !':p>=40?'Pas mal !':'Continue !';
 
 function hearts(el,n,max=3){
@@ -225,18 +232,17 @@ function showQ(){
     imgEl.src='';
   }
 
-  // Son — NE PAS créer l'Audio ici, seulement au clic
+  // Son — créé uniquement au clic (évite onerror prématuré)
   const soundRow=document.getElementById('sound-row');
   const playBtn=document.getElementById('play-btn');
+  currentAudio=null; // toujours réinitialiser
   if(mode!=='photo'){
-    currentAudio=null; // sera créé au premier clic
     soundRow.style.display='flex';
     playBtn.textContent='▶ Écouter';
     playBtn.classList.remove('playing');
     playBtn.disabled=false;
   } else {
     soundRow.style.display='none';
-    currentAudio=null;
   }
 
   // Choix
@@ -252,19 +258,29 @@ function showQ(){
 function toggleSound(){
   const q=queue[idx];
   const btn=document.getElementById('play-btn');
-  // Créer l'Audio au premier clic (après interaction utilisateur = autorisé par Firefox)
+  // Si un son joue, le mettre en pause
+  if(currentAudio && !currentAudio.paused){
+    currentAudio.pause();
+    btn.textContent='▶ Écouter';
+    btn.classList.remove('playing');
+    return;
+  }
+  // Créer un nouvel Audio lié à CET oiseau précis
   if(!currentAudio){
     currentAudio=new Audio(SNDP+q.mp3);
-    currentAudio.onerror=()=>{btn.textContent='Son indisponible';btn.disabled=true;currentAudio=null;};
-    currentAudio.onended=()=>{btn.textContent='▶ Réécouter';btn.classList.remove('playing');};
+    currentAudio.onended=()=>{
+      btn.textContent='▶ Réécouter';
+      btn.classList.remove('playing');
+    };
   }
-  if(!currentAudio.paused){
-    currentAudio.pause();
-    btn.textContent='▶ Écouter';btn.classList.remove('playing');
-  } else {
-    currentAudio.play().catch(()=>{btn.textContent='Son indisponible';btn.disabled=true;});
-    btn.textContent='⏸ Pause';btn.classList.add('playing');
-  }
+  currentAudio.play().then(()=>{
+    btn.textContent='⏸ Pause';
+    btn.classList.add('playing');
+  }).catch(()=>{
+    btn.textContent='Son indisponible';
+    btn.disabled=true;
+    currentAudio=null;
+  });
 }
 
 function evalQ(btn,chosen,q){
