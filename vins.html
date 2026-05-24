@@ -172,9 +172,6 @@ select option{background:#5c2a0a;color:#fdf6ee}
 
 
 <script>
-const shuf=a=>[...a].sort(()=>Math.random()-.5);
-const msg=p=>p===100?'🏆 Score parfait !':p>=80?'Excellent !':p>=60?'Bien joué !':p>=40?'Pas mal !':"Continue à t'entraîner !"
-
 function playOk(){const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sine';o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.start(t);o.stop(t+.35)}
 function playErr(){const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sine';o.frequency.setValueAtTime(330,t);o.frequency.linearRampToValueAtTime(220,t+.18);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.02);g.gain.setValueAtTime(.16,t+.1);g.gain.linearRampToValueAtTime(0,t+.28);o.start(t);o.stop(t+.3)}
 
@@ -204,6 +201,15 @@ function endScreen(pfx,played,score){
   document.getElementById(pfx+'-end').classList.add('on');
 }
 
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab[onclick="switchTab(\''+t+'\')"]').classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('panel-'+t).classList.add('on');
+}
+
+// ═══════════════════════════════════════════════
+
 function shareScore(pfx,label){
   const score=document.getElementById(pfx+'-escore').textContent;
   const text=label+'\n'+score;
@@ -222,7 +228,27 @@ function shareScore(pfx,label){
   showShareModal(text);
 }
 
-
+function showShareModal(text){
+  let modal=document.getElementById('share-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='share-modal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem';
+    modal.innerHTML=`<div style="background:white;border-radius:12px;padding:1.5rem;max-width:320px;width:100%;text-align:center;font-family:DM Sans,sans-serif;color:#2a1a0e">
+      <div style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:#d4601a;margin-bottom:.75rem">Partager mon score</div>
+      <textarea id="share-text" readonly style="width:100%;border:1.5px solid #e8d5b8;border-radius:8px;padding:.75rem;font-size:1.1rem;line-height:1.8;text-align:center;resize:none;background:#fdf6ee;color:#2a1a0e;font-family:inherit"></textarea>
+      <button onclick="document.getElementById('share-text').select();document.execCommand('copy');document.getElementById('share-copy-lbl').textContent='✓ Copié !'" style="margin-top:.75rem;padding:8px 20px;border-radius:40px;background:#d4601a;color:white;border:none;font-family:inherit;font-size:.84rem;font-weight:500;cursor:pointer">Copier</button>
+      <span id="share-copy-lbl" style="font-size:.75rem;color:#3a6b2a;margin-left:.5rem"></span>
+      <div><button onclick="document.getElementById('share-modal').style.display='none'" style="margin-top:.75rem;background:none;border:none;color:#a07850;font-size:.8rem;cursor:pointer;font-family:inherit">Fermer</button></div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('share-modal').style.display='flex';
+  document.getElementById('share-copy-lbl').textContent='';
+  const ta=document.getElementById('share-text');
+  ta.value=text;
+  ta.rows=text.split('\n').length+1;
+}
 // DATA — VINS
 // ═══════════════════════════════════════════════
 const VIN=[
@@ -400,56 +426,6 @@ function evalVin(btn,chosen,q,div){
 function nextVin(){showVin()}
 
 
-function initVin(){
-  const sel=document.getElementById('vin-reg');
-  const regs=[...new Set(VIN.map(x=>x.r))].sort();
-  sel.innerHTML='<option value="all">Toutes les régions</option>';
-  regs.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o)});
-}
-
-function getVD(){const r=document.getElementById('vin-reg').value;return r==='all'?VIN:VIN.filter(x=>x.r===r)}
-
-function resetVin(){
-  vData=getVD();vQ=shuf(vData);vI=0;vScore=0;vStr=0;vLives=3;
-  document.getElementById('vin-end').classList.remove('on');
-  document.getElementById('vin-game').style.display='';
-  document.getElementById('vin-total').textContent=vQ.length;
-  updVin();showVin();
-}
-
-function updVin(){
-  hearts(document.getElementById('vin-hearts'),vLives);
-  document.getElementById('vin-score').textContent=vScore;
-  document.getElementById('vin-streak').textContent=vStr>=3?'🔥 ×'+vStr:'';
-  document.getElementById('vin-prog').style.width=(vQ.length?vI/vQ.length*100:0)+'%';
-}
-
-function showVin(){
-  if(vI>=vQ.length||vLives<=0){endScreen('vin',vI,vScore);return}
-  const q=vQ[vI];
-  document.getElementById('vin-appellation').textContent=q.a;
-  document.getElementById('vin-fb').className='fb';
-  document.getElementById('vin-next').classList.remove('on');
-  // Distracteurs de régions différentes
-  const allRegs=[...new Set(VIN.map(x=>x.r).filter(r=>r!==q.r))];
-  const pool=shuf(allRegs).slice(0,3);
-  const opts=shuf([q.r,...pool]);
-  const div=document.getElementById('vin-choices');div.innerHTML='';
-  opts.forEach(o=>{const b=document.createElement('button');b.className='choice';b.textContent=o;b.onclick=()=>evalVin(b,o,q,div);div.appendChild(b)});
-}
-
-function evalVin(btn,chosen,q,div){
-  div.querySelectorAll('.choice').forEach(b=>b.disabled=true);
-  const ok=chosen===q.r;
-  btn.classList.add(ok?'cor':'wrg');
-  if(!ok){div.querySelectorAll('.choice').forEach(b=>{if(b.textContent===q.r)b.classList.add('cor')});vLives--;vStr=0;playErr()}
-  else{vScore++;vStr++;playOk()}
-  const fb=document.getElementById('vin-fb');
-  fb.className='fb '+(ok?'cor':'wrg');
-  fb.innerHTML=ok?'<div class="fb-main">✓ '+q.r+'</div>':'<div class="fb-main">✗ '+q.r+'</div>';
-  vI++;updVin();document.getElementById('vin-next').classList.add('on');
-}
-function nextVin(){showVin()}
 initVin();resetVin();
 </script>
 </body>
