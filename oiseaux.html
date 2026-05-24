@@ -347,14 +347,15 @@ function showQ(){
       stopAudioTimer();
       updateAudioUI();
     };
-    // Lecture auto dès que possible
-    currentAudio.play().then(()=>{
-      btn.textContent='⏸';
-      startAudioTimer();
-    }).catch(()=>{
-      // Si autoplay bloqué (local), attendre le clic
-      btn.textContent='▶';
-    });
+    // Lecture auto si l'utilisateur a déjà interagi
+    if(userInteracted){
+      currentAudio.play().then(()=>{
+        btn.textContent='⏸';
+        startAudioTimer();
+      }).catch(()=>{
+        btn.textContent='▶';
+      });
+    }
   } else {
     soundRow.style.display='none';
   }
@@ -370,6 +371,7 @@ function showQ(){
 }
 
 let audioTimer=null;
+let userInteracted=false;
 
 function fmtTime(s){
   if(isNaN(s)||s<0)return'0:00';
@@ -431,6 +433,7 @@ function toggleSound(){
 }
 
 function evalQ(btn,chosen,q){
+  userInteracted=true;
   document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
   const ok=chosen===q.n;
   btn.classList.add(ok?'cor':'wrg');
