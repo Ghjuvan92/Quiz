@@ -31,9 +31,14 @@ select option{background:#5c2a0a}
 .bird-wrap{width:100%;height:200px;border-radius:var(--rs);overflow:hidden;margin-bottom:.5rem;background:#e8d5b8;display:flex;align-items:center;justify-content:center}
 .bird-img{width:100%;height:100%;object-fit:contain}
 .bird-ph{font-size:3rem}
-.sound-row{display:flex;align-items:center;gap:8px;margin-bottom:.3rem}
-.play-btn{padding:7px 16px;border-radius:20px;border:none;background:var(--orange);color:white;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px}
-.play-btn:hover{background:var(--brown)}.play-btn.playing{background:var(--brown)}.play-btn:disabled{background:#aaa;cursor:default}
+.audio-player{margin-bottom:.4rem}
+.audio-controls{display:flex;align-items:center;gap:8px;padding:.3rem 0}
+.audio-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--orange);color:white;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-btn:hover{background:var(--brown)}
+.audio-time{font-size:.7rem;color:#a07850;white-space:nowrap;min-width:28px}
+.audio-bar{flex:1;height:4px;background:#e8d5b8;border-radius:2px;cursor:pointer;position:relative}
+.audio-fill{height:100%;background:var(--orange);border-radius:2px;transition:width .1s linear;pointer-events:none}
+.audio-thumb{width:12px;height:12px;background:var(--orange);border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);pointer-events:none;transition:left .1s linear}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:.5rem}
 .choice{padding:.58rem .75rem;border-radius:var(--rs);border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;color:#fdf6ee;text-align:center;line-height:1.3;transition:border-color .14s,background .14s;backdrop-filter:blur(4px)}
 .choice:not([disabled]):hover{border-color:var(--orange-mid);background:rgba(232,133,74,.25)}
@@ -90,8 +95,16 @@ select option{background:#5c2a0a}
       <div class="bird-ph" id="bird-ph">🐦</div>
       <img id="bird-img" class="bird-img" style="display:none" alt="">
     </div>
-    <div class="sound-row" id="sound-row" style="display:none">
-      <button class="play-btn" id="play-btn" onclick="toggleSound()">▶ Écouter</button>
+    <div class="audio-player" id="sound-row" style="display:none">
+      <div class="audio-controls">
+        <button class="audio-btn" id="play-btn" onclick="toggleSound()">▶</button>
+        <span class="audio-time" id="audio-cur">0:00</span>
+        <div class="audio-bar" id="audio-bar" onclick="seekAudio(event)">
+          <div class="audio-fill" id="audio-fill" style="width:0%"></div>
+          <div class="audio-thumb" id="audio-thumb" style="left:0%"></div>
+        </div>
+        <span class="audio-time" id="audio-dur">0:00</span>
+      </div>
     </div>
   </div>
   <div class="choices" id="choices"></div>
@@ -311,12 +324,37 @@ function showQ(){
   // Son — créé uniquement au clic (évite onerror prématuré)
   const soundRow=document.getElementById('sound-row');
   const playBtn=document.getElementById('play-btn');
-  currentAudio=null; // toujours réinitialiser
+  currentAudio=null;
+  stopAudioTimer();
+  // Réinitialiser UI audio
+  document.getElementById('audio-fill').style.width='0%';
+  document.getElementById('audio-thumb').style.left='0%';
+  document.getElementById('audio-cur').textContent='0:00';
+  document.getElementById('audio-dur').textContent='0:00';
+
   if(mode!=='photo'){
     soundRow.style.display='flex';
-    playBtn.textContent='▶ Écouter';
-    playBtn.classList.remove('playing');
-    playBtn.disabled=false;
+    const btn=document.getElementById('play-btn');
+    btn.textContent='▶';
+    btn.disabled=false;
+    // Créer l'audio et le lancer automatiquement
+    currentAudio=new Audio(SNDP+q.mp3);
+    currentAudio.onloadedmetadata=()=>{
+      document.getElementById('audio-dur').textContent=fmtTime(currentAudio.duration);
+    };
+    currentAudio.onended=()=>{
+      btn.textContent='▶';
+      stopAudioTimer();
+      updateAudioUI();
+    };
+    // Lecture auto dès que possible
+    currentAudio.play().then(()=>{
+      btn.textContent='⏸';
+      startAudioTimer();
+    }).catch(()=>{
+      // Si autoplay bloqué (local), attendre le clic
+      btn.textContent='▶';
+    });
   } else {
     soundRow.style.display='none';
   }
@@ -331,32 +369,65 @@ function showQ(){
   });
 }
 
-function toggleSound(){
-  const q=queue[idx];
+let audioTimer=null;
+
+function fmtTime(s){
+  if(isNaN(s)||s<0)return'0:00';
+  const m=Math.floor(s/60),sec=Math.floor(s%60);
+  return m+':'+(sec<10?'0':'')+sec;
+}
+
+function updateAudioUI(){
+  if(!currentAudio)return;
+  const cur=currentAudio.currentTime||0;
+  const dur=currentAudio.duration||0;
+  const pct=dur?cur/dur*100:0;
+  document.getElementById('audio-fill').style.width=pct+'%';
+  document.getElementById('audio-thumb').style.left=pct+'%';
+  document.getElementById('audio-cur').textContent=fmtTime(cur);
+  document.getElementById('audio-dur').textContent=fmtTime(dur);
+}
+
+function startAudioTimer(){
+  if(audioTimer)clearInterval(audioTimer);
+  audioTimer=setInterval(updateAudioUI,200);
+}
+
+function stopAudioTimer(){
+  if(audioTimer){clearInterval(audioTimer);audioTimer=null;}
+}
+
+function seekAudio(e){
+  if(!currentAudio||!currentAudio.duration)return;
+  const bar=document.getElementById('audio-bar');
+  const rect=bar.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  currentAudio.currentTime=pct*currentAudio.duration;
+  updateAudioUI();
+}
+
+function playAudio(){
   const btn=document.getElementById('play-btn');
-  // Si un son joue, le mettre en pause
-  if(currentAudio && !currentAudio.paused){
-    currentAudio.pause();
-    btn.textContent='▶ Écouter';
-    btn.classList.remove('playing');
-    return;
-  }
-  // Créer un nouvel Audio lié à CET oiseau précis
-  if(!currentAudio){
-    currentAudio=new Audio(SNDP+q.mp3);
-    currentAudio.onended=()=>{
-      btn.textContent='▶ Réécouter';
-      btn.classList.remove('playing');
-    };
-  }
+  if(!currentAudio)return;
   currentAudio.play().then(()=>{
-    btn.textContent='⏸ Pause';
-    btn.classList.add('playing');
+    btn.textContent='⏸';
+    startAudioTimer();
   }).catch(()=>{
-    btn.textContent='Son indisponible';
+    btn.textContent='✕';
     btn.disabled=true;
-    currentAudio=null;
   });
+}
+
+function toggleSound(){
+  const btn=document.getElementById('play-btn');
+  if(!currentAudio)return;
+  if(!currentAudio.paused){
+    currentAudio.pause();
+    btn.textContent='▶';
+    stopAudioTimer();
+  } else {
+    playAudio();
+  }
 }
 
 function evalQ(btn,chosen,q){
