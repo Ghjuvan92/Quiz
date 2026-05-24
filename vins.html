@@ -138,12 +138,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
 </div>
 <!-- ══ VINS ══ -->
 <div id="panel-vin" class="panel on">
-  <div class="filters">
-    <span class="fl">Région</span>
-    <select id="vin-reg" onchange="resetVin()">
-      <option value="all">Toutes</option>
-    </select>
-  </div>
+
   <div class="hud">
     <div class="hud-lives" id="vin-hearts"></div>
     <div class="hud-score">Score&thinsp;: <strong id="vin-score">0</strong><span id="vin-total" style="display:none">0</span></div>
@@ -378,14 +373,9 @@ const VIN=[
 let vData=[],vQ=[],vI=0,vScore=0,vStr=0,vLives=3;
 
 function initVin(){
-  const sel=document.getElementById('vin-reg');
-  const regs=[...new Set(VIN.map(x=>x.r))].sort();
-  sel.innerHTML='<option value="all">Toutes les régions</option>';
-  regs.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o)});
+  // Pas de filtre région
 }
-
-function getVD(){const r=document.getElementById('vin-reg').value;return r==='all'?VIN:VIN.filter(x=>x.r===r)}
-
+function getVD(){return VIN;}
 function resetVin(){
   vData=getVD();vQ=shuf(vData);vI=0;vScore=0;vStr=0;vLives=3;
   document.getElementById('vin-end').classList.remove('on');

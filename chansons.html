@@ -405,9 +405,15 @@ function showCha(){
   document.getElementById('cha-zone').textContent='';
   document.getElementById('cha-fb').className='fb';
   document.getElementById('cha-next').classList.remove('on');
-  // Distracteurs parmi artistes différents
-  const allArtists=[...new Set(chData.filter(x=>x.a!==q.a).map(x=>x.a))];
-  const pool=shuf(allArtists).slice(0,3);
+  // Distracteurs même nationalité que la bonne réponse
+  const samePays=chData.filter(x=>x.a!==q.a&&x.pays===q.pays);
+  let poolArtists=[...new Set(samePays.map(x=>x.a))];
+  // Si pas assez de même nationalité, compléter avec d'autres
+  if(poolArtists.length<3){
+    const others=[...new Set(chData.filter(x=>x.a!==q.a&&x.pays!==q.pays).map(x=>x.a))];
+    poolArtists=[...poolArtists,...shuf(others)];
+  }
+  const pool=shuf(poolArtists).slice(0,3);
   const opts=shuf([q.a,...pool]);
   const div=document.getElementById('cha-choices');div.innerHTML='';
   opts.forEach(o=>{const b=document.createElement('button');b.className='choice';b.textContent=o;b.onclick=()=>evalCha(b,o,q.a,div,q);div.appendChild(b)});
