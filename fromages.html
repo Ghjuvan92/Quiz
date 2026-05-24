@@ -180,6 +180,7 @@ select option{background:#5c2a0a;color:#fdf6ee}
 
 
 <script>
+const AC=new(window.AudioContext||window.webkitAudioContext)();
 function playOk(){const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sine';o.frequency.setValueAtTime(880,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.start(t);o.stop(t+.35)}
 function playErr(){const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sine';o.frequency.setValueAtTime(330,t);o.frequency.linearRampToValueAtTime(220,t+.18);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.02);g.gain.setValueAtTime(.16,t+.1);g.gain.linearRampToValueAtTime(0,t+.28);o.start(t);o.stop(t+.3)}
 
