@@ -66,6 +66,8 @@ body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;
   <a class="card" href="champignons.html"><div class="card-emoji">🍄</div><div class="card-label">Champignons</div></a>
   <a class="card" href="cris.html"><div class="card-emoji">🦁</div><div class="card-label">Cris d'animaux</div></a>
   <a class="card" href="films.html"><div class="card-emoji">🎬</div><div class="card-label">Films</div></a>
+  <a class="card" href="chiens.html"><div class="card-emoji">🐶</div><div class="card-label">Chiens</div></a>
+  <a class="card" href="chats.html"><div class="card-emoji">🐱</div><div class="card-label">Chats</div></a>
 </div>
 
 <script>
@@ -76,8 +78,8 @@ const mois = ['janvier','février','mars','avril','mai','juin','juillet','août'
 document.getElementById('mdj-date').textContent =
   jours[today.getDay()] + ' ' + today.getDate() + ' ' + mois[today.getMonth()] + ' ' + today.getFullYear();
 
-// Mot 0 = 26 mai 2026 (ligne 1 du fichier Excel)
-const ref = new Date(2026, 4, 26); // 26 mai 2026
+// Mot 0 = 25 mai 2026 (aujourd'hui)
+const ref = new Date(2026, 4, 25); // 25 mai 2026
 const diffMs = today - ref;
 const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
