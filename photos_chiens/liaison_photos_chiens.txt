@@ -1,0 +1,88 @@
+Akita Americain : akita-americain.jpg
+Akita Americain : akita-americain.webp
+Akita Inu : akita-inu.jpg
+American Bully : american-bully.jpg
+American Staff : american-staff.jpg
+Basenji : basenji.jpg
+Basset Hound : basset-hound.jpg
+Beagle : beagle.jpg
+Beauceron : beauceron.jpg
+Berger Allemand : berger-allemand.jpg
+Berger Australien : berger-australien.jpg
+Berger Belge Malinois : berger-belge-malinois.jpg
+Berger D'Anatolie : berger-d'anatolie.jpg
+Berger de Brie : berger-de-brie.jpg
+Berger des Pyrenees : berger-des-pyrenees.jpg
+Berger des Shetland : berger-des-shetland.jpg
+Berger du Caucase : berger-du-caucase.jpg
+Berger Hollandais : berger-hollandais.jpg
+Bichon Frise : bichon-frise.jpg
+Bichon Havanais : bichon-havanais.jpg
+Bichon Maltais : bichon-maltais.jpg
+Bobtail : bobtail.jpg
+Border Collie : border-collie.jpg
+Boston Terrier : boston-terrier.jpg
+Bouledogue Americain : bouledogue-americain.jpg
+Bouledogue Anglais : bouledogue-anglais.jpg
+Bouledogue Français : bouledogue-francais.jpg
+Bouledogue Français : bouledogue-français.jpg
+Bouvier Australien : bouvier-australien.jpg
+Bouvier Bernois : bouvier-bernois.jpg
+Boxer : boxer.jpg
+Braque Allemand : braque-allemand.jpg
+Braque de Weimar : braque-de-weimar.jpg
+Bull Terrier : bull-terrier.jpg
+Bullmastiff : bullmastiff.jpg
+Cairn Terrier : cairn-terrier.jpg
+Cane Corso : cane-corso.jpg
+Caniche Nain : caniche-nain.jpg
+Carlin : carlin.jpg
+Cavalier King Charles : cavalier-king-charles.jpg
+Chien Loup Tchecoslovaque : chien-loup-tchecoslovaque.jpg
+Chihuahua : chihuahua.jpg
+Chow Chow : chow-chow.jpg
+Cocker Americain : cocker-americain.jpg
+Cocker Spaniel : cocker-spaniel.jpg
+Cocker : cocker.jpg
+Colley : colley.jpg
+Coton de Tulear : coton-de-tulear.jpg
+Dalmatien : dalmatien.jpg
+Dobermann : dobermann.jpg
+Dogue Allemand : dogue-allemand.jpg
+Dogue Argentin : dogue-argentin.jpg
+Dogue de Bordeaux : dogue-de-bordeaux.jpg
+Dogue du Tibet : dogue-du-tibet.jpg
+Epagneul Breton : epagneul-breton.jpg
+Eurasier : eurasier.jpg
+Fox Terrier : fox-terrier.jpg
+Golden Retriever : golden-retriever.jpg
+Husky Siberien : husky-siberien.jpg
+Jack Russell : jack-russell.jpg
+Labrador Retriever : labrador-retriever.jpg
+Leonberg : leonberg.jpg
+Lhassa Apso : lhassa-apso.jpg
+Mastiff : mastiff.jpg
+Pekinois : pekinois.jpg
+Pinscher Nain : pinscher-nain.jpg
+Pinscher : pinscher.jpg
+Pitbull : pitbull.jpg
+Pointer : pointer.jpg
+Pomsky : pomsky.jpg
+Rhodesian Ridgeback : rhodesian-ridgeback.jpg
+Rottweiler : rottweiler.jpg
+Saint Bernard : saint-bernard.jpg
+Samoyede : samoyede.jpg
+Setter Anglais : setter-anglais.jpg
+Setter Irlandais : setter-irlandais.jpg
+Shar Peï : shar-peï.jpg
+Shiba Inu : shiba-inu.jpg
+Shih Tzu : shih-tzu.jpg
+Siberian Husky : siberian-husky.jpg
+Spitz Allemand : spitz-allemand.jpg
+Spitz Loup : spitz-loup.jpg
+Staffordshire Bull Terrier : staffordshire-bull-terrier.jpg
+Teckel : teckel.jpg
+Terre Neuve : terre-neuve.jpg
+Welsh Corgi : welsh-corgi.jpg
+Whippet : whippet.jpg
+Yorkshire Terrier : yorkshire-terrier.jpg
