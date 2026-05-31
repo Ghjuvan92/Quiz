@@ -186,6 +186,33 @@ let valeursDispos = []; // [{id,val}] état courant
 const TIMER_DURATION = 30;
 let timerInterval = null;
 let timerSecondes = TIMER_DURATION;
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTick() {} // inutilisé
+
+function playBuzzer() {
+  // Simple cloche douce — "ding" — comme à l'émission
+  const t = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(1047, t); // Do5
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.18, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 2.2);
+  o.start(t); o.stop(t + 1.8);
+  // harmonique légère
+  const o2 = AC.createOscillator();
+  const g2 = AC.createGain();
+  o2.connect(g2); g2.connect(AC.destination);
+  o2.type = 'sine';
+  o2.frequency.setValueAtTime(2093, t); // Do6
+  g2.gain.setValueAtTime(0, t);
+  g2.gain.linearRampToValueAtTime(0.06, t + 0.01);
+  g2.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+  o2.start(t); o2.stop(t + 1.2);
+}
 
 function startTimer() {
   stopTimer();
@@ -196,6 +223,7 @@ function startTimer() {
     updateTimerDisplay();
     if(timerSecondes <= 0) {
       stopTimer();
+      playBuzzer();
       document.getElementById('timer-label').textContent = 'Temps écoulé !';
     }
   }, 1000);
@@ -227,6 +255,8 @@ function tirer() {
   document.getElementById('solution-wrap').classList.remove('on');
   document.getElementById('rc').textContent = '';
   document.getElementById('rc').className = 'resultat-courant';
+  document.getElementById('plaques-orig').innerHTML = '';
+  document.getElementById('plaques-inter').innerHTML = '';
   renderPlaques();
   renderOps();
   renderEtapes();
@@ -236,18 +266,51 @@ function tirer() {
 function renderPlaques() {
   const elOrig  = document.getElementById('plaques-orig');
   const elInter = document.getElementById('plaques-inter');
-  elOrig.innerHTML  = '';
   elInter.innerHTML = '';
 
-  valeursDispos.forEach(v=>{
-    const orig = plaques.find(p=>p.id===v.id);
+  // Plaques originales : toujours toutes affichées, grisées si utilisées
+  const usedOrigIds = new Set(etapes.flatMap(e => e.consumed.filter(id => id < 100)));
+  // mais si une plaque originale a été consommée par une étape ultérieure via id intermédiaire,
+  // on la considère quand même used si elle n'est plus dans valeursDispos
+  const dispos = new Set(valeursDispos.filter(v=>v.id<100).map(v=>v.id));
+
+  // Ne reconstruire les orig que si pas encore initialisées (au tirer)
+  if(elOrig.children.length === 0) {
+    plaques.forEach(p=>{
+      const btn = document.createElement('button');
+      btn.className = p.type==='grande' ? 'plaque grande' : 'plaque petite';
+      btn.id = 'plaque-' + p.id;
+      btn.textContent = p.val;
+      btn.onclick = () => clicPlaque(p.id, p.val);
+      elOrig.appendChild(btn);
+    });
+  }
+
+  // Mettre à jour l'état visuel de chaque plaque originale
+  plaques.forEach(p=>{
+    const btn = document.getElementById('plaque-' + p.id);
+    if(!btn) return;
+    const available = dispos.has(p.id);
+    btn.disabled = !available;
+    btn.style.opacity = available ? '1' : '0.2';
+    btn.style.pointerEvents = available ? '' : 'none';
+    btn.style.background = available
+      ? (p.type==='grande' ? '#e8d5b0' : '#fdf6ee')
+      : 'rgba(255,255,255,.12)';
+    btn.style.color = available ? '#2a1a0e' : 'rgba(253,246,238,.3)';
+    btn.style.boxShadow = available ? '' : 'none';
+    if(selection && selection.id===p.id) btn.classList.add('selected');
+    else btn.classList.remove('selected');
+  });
+
+  // Plaques intermédiaires (résultats calculés)
+  valeursDispos.filter(v=>v.id>=100).forEach(v=>{
     const btn = document.createElement('button');
-    btn.className = (orig && orig.type==='grande') ? 'plaque grande' : 'plaque petite';
+    btn.className = 'plaque petite';
     if(selection && selection.id===v.id) btn.classList.add('selected');
     btn.textContent = v.val;
     btn.onclick = () => clicPlaque(v.id, v.val);
-    if(v.id >= 100) elInter.appendChild(btn);
-    else elOrig.appendChild(btn);
+    elInter.appendChild(btn);
   });
 }
 
