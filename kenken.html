@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KenKen</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1a0e;--green-dark:#2d3a1a;--green-mid:#3d4f22;
+  --yellow:#e8c84a;--red:#c83030;--white:#f0ece0;--dim:rgba(240,236,224,.4);
+  --r:6px;--CELL:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:.75rem .75rem 2rem;
+  background:var(--bg)}
+.nav{width:100%;max-width:420px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.back{font-size:.8rem;color:var(--dim);text-decoration:none}.back:hover{color:var(--white)}
+.hdr{flex:1;text-align:center}
+.hdr h1{font-family:'Share Tech Mono',monospace;font-size:1.2rem;letter-spacing:.15em;color:var(--white)}
+.hdr h1 em{font-style:normal;color:var(--yellow)}
+.panel{width:100%;max-width:420px;display:flex;flex-direction:column;gap:.7rem;align-items:center}
+
+/* GRILLE */
+.grille-wrap{
+  background:var(--green-dark);padding:6px;border-radius:var(--r);
+  border:2px solid var(--green-mid);
+  position:relative;
+  display:inline-block;
+}
+.grille{
+  display:grid;
+  grid-template-columns:repeat(4,var(--CELL));
+  grid-template-rows:repeat(4,var(--CELL));
+  gap:0;position:relative;
+}
+
+/* Cellules */
+.cell{
+  width:var(--CELL);height:var(--CELL);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:1.9rem;
+  cursor:pointer;transition:background .1s;
+  position:relative;
+  background:rgba(240,236,224,.05);
+  border-right:1px solid rgba(240,236,224,.15);
+  border-bottom:1px solid rgba(240,236,224,.15);
+}
+.cell:nth-child(4n){border-right:none}
+.cell:nth-child(n+13){border-bottom:none}
+
+/* Bordures épaisses de cage */
+.cell.cage-top   {border-top:   2.5px solid var(--yellow)}
+.cell.cage-left  {border-left:  2.5px solid var(--yellow)}
+.cell.cage-bottom{border-bottom:2.5px solid var(--yellow)}
+.cell.cage-right {border-right: 2.5px solid var(--yellow)}
+
+.cell.selected{background:rgba(232,200,74,.18)}
+.cell:hover:not(.selected){background:rgba(240,236,224,.1)}
+.cell.ok{color:#8de870}
+.cell.err{color:#e87070}
+
+/* Label cage */
+.cage-label{
+  position:absolute;top:3px;left:4px;
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;
+  color:var(--yellow);line-height:1;letter-spacing:0;
+  pointer-events:none;
+}
+
+/* Règles */
+.rules{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  color:var(--dim);text-align:center;letter-spacing:.04em;line-height:1.7}
+
+/* PAVÉ */
+.pad{display:flex;gap:6px;justify-content:center}
+.pad-btn{width:56px;height:46px;border-radius:var(--r);
+  border:1.5px solid rgba(240,236,224,.2);
+  background:rgba(240,236,224,.06);
+  font-family:'Share Tech Mono',monospace;font-size:1.3rem;
+  color:rgba(240,236,224,.8);cursor:pointer;transition:all .14s}
+.pad-btn:hover{background:rgba(240,236,224,.15);color:var(--white)}
+.pad-btn.del{font-size:.85rem;color:var(--dim)}
+.pad-btn.del:hover{color:var(--red)}
+
+/* ACTIONS */
+.actions{display:flex;gap:6px;width:100%}
+.btn{flex:1;padding:.55rem .4rem;border-radius:var(--r);
+  border:1px solid rgba(240,236,224,.2);
+  background:rgba(240,236,224,.06);
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;letter-spacing:.05em;
+  color:rgba(240,236,224,.75);cursor:pointer;transition:all .16s;text-align:center}
+.btn:hover{background:rgba(240,236,224,.14);color:var(--white)}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn.primary:hover{background:#a82020}
+
+/* DIFFICULTÉ */
+.diff-wrap{display:flex;gap:6px;justify-content:center}
+.diff-btn{padding:.3rem .8rem;border-radius:20px;
+  border:1px solid rgba(240,236,224,.2);
+  background:rgba(240,236,224,.06);
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:.08em;
+  color:var(--dim);cursor:pointer;transition:all .15s}
+.diff-btn.active{background:var(--yellow);border-color:var(--yellow);color:#1a1400}
+.diff-btn:hover:not(.active){background:rgba(240,236,224,.12);color:var(--white)}
+
+.msg{font-family:'Share Tech Mono',monospace;font-size:.82rem;
+  text-align:center;min-height:1.2rem;letter-spacing:.08em;color:var(--dim)}
+.msg.ok{color:var(--yellow);text-shadow:0 0 8px rgba(240,224,96,.4)}
+.msg.err{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a class="back" href="index.html">← Accueil</a>
+  <div class="hdr"><h1>Ken<em>Ken</em></h1></div>
+</div>
+<div class="panel">
+  <div class="diff-wrap">
+    <button class="diff-btn active" data-diff="facile"   onclick="setDiff('facile')">FACILE</button>
+    <button class="diff-btn"        data-diff="moyen"    onclick="setDiff('moyen')">MOYEN</button>
+    <button class="diff-btn"        data-diff="difficile"onclick="setDiff('difficile')">DIFFICILE</button>
+  </div>
+  <div class="grille-wrap"><div class="grille" id="grille"></div></div>
+  <div class="pad">
+    <button class="pad-btn" onclick="saisir(1)">1</button>
+    <button class="pad-btn" onclick="saisir(2)">2</button>
+    <button class="pad-btn" onclick="saisir(3)">3</button>
+    <button class="pad-btn" onclick="saisir(4)">4</button>
+    <button class="pad-btn del" onclick="saisir(0)">✕</button>
+  </div>
+  <div class="rules">
+    Chiffres 1 à 4 · une seule fois par ligne et par colonne<br>
+    Chaque cage indique le résultat de l'opération (+&nbsp;−&nbsp;×&nbsp;÷)
+  </div>
+  <div class="msg" id="msg"></div>
+  <div class="actions">
+    <button class="btn" onclick="newGame()">↺ Nouveau</button>
+    <button class="btn primary" onclick="verifier()">Vérifier</button>
+    <button class="btn" onclick="showSolution()">Solution</button>
+  </div>
+</div>
+
+<script>
+const AC = new(window.AudioContext||window.webkitAudioContext)();
+function beep(f,d,v=0.08){const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d)}
+const playSaisie=()=>beep(440,.08,.07);
+const playOk=()=>{beep(660,.15,.09);setTimeout(()=>beep(880,.18,.09),130)};
+const playErr=()=>beep(200,.18,.1);
+const playWin=()=>{[0,130,260].forEach((d,i)=>setTimeout(()=>beep([660,880,1047][i],.22,.1),d))};
+
+// ── Puzzles définis à la main
+// Format cage: {cells:[indices 0-15], op:'+'/'-'/'*'/'/', result:n}
+// solution: tableau 4x4 (row-major)
+
+const PUZZLES = {
+facile:[
+{
+  sol:[1,2,3,4, 2,1,4,3, 3,4,1,2, 4,3,2,1],
+  cages:[
+    {cells:[0,1],    op:'+', result:3},
+    {cells:[2,3],    op:'+', result:7},
+    {cells:[4,8],    op:'+', result:5},
+    {cells:[5,6],    op:'-', result:3},
+    {cells:[7,11],   op:'+', result:4},
+    {cells:[9,10],   op:'+', result:5},
+    {cells:[12,13],  op:'+', result:7},
+    {cells:[14,15],  op:'+', result:3},
+  ]
+},
+{
+  sol:[3,1,2,4, 1,3,4,2, 4,2,1,3, 2,4,3,1],
+  cages:[
+    {cells:[0,4],    op:'+', result:4},
+    {cells:[1,2],    op:'+', result:3},
+    {cells:[3,7],    op:'+', result:6},
+    {cells:[5,6],    op:'*', result:12},
+    {cells:[8,9],    op:'+', result:6},
+    {cells:[10,11],  op:'+', result:4},
+    {cells:[12,13],  op:'-', result:2},
+    {cells:[14,15],  op:'+', result:4},
+  ]
+},
+{
+  sol:[2,3,4,1, 4,1,2,3, 1,4,3,2, 3,2,1,4],
+  cages:[
+    {cells:[0,1],    op:'+', result:5},
+    {cells:[2,6],    op:'+', result:6},
+    {cells:[3,7],    op:'+', result:4},
+    {cells:[4,5],    op:'*', result:4},
+    {cells:[8,12],   op:'+', result:4},
+    {cells:[9,10],   op:'-', result:1},
+    {cells:[11,15],  op:'+', result:6},
+    {cells:[13,14],  op:'+', result:3},
+  ]
+},
+],
+moyen:[
+{
+  sol:[1,2,3,4, 3,4,1,2, 2,3,4,1, 4,1,2,3],
+  cages:[
+    {cells:[0,4],    op:'+', result:4},
+    {cells:[1,2],    op:'*', result:6},
+    {cells:[3,7],    op:'+', result:6},
+    {cells:[5,6],    op:'-', result:3},
+    {cells:[8,9],    op:'+', result:5},
+    {cells:[10,14],  op:'*', result:8},
+    {cells:[11,15],  op:'+', result:4},
+    {cells:[12,13],  op:'+', result:5},
+  ]
+},
+{
+  sol:[4,1,3,2, 2,3,1,4, 3,4,2,1, 1,2,4,3],
+  cages:[
+    {cells:[0,1],    op:'-', result:3},
+    {cells:[2,3],    op:'+', result:5},
+    {cells:[4,8],    op:'+', result:5},
+    {cells:[5,6],    op:'*', result:3},
+    {cells:[7,11],   op:'+', result:5},
+    {cells:[9,10],   op:'-', result:2},
+    {cells:[12,13],  op:'+', result:3},
+    {cells:[14,15],  op:'-', result:1},
+  ]
+},
+],
+difficile:[
+{
+  sol:[2,1,4,3, 4,3,2,1, 1,4,3,2, 3,2,1,4],
+  cages:[
+    {cells:[0,1,4],  op:'+', result:7},
+    {cells:[2,3],    op:'-', result:1},
+    {cells:[5,6],    op:'*', result:6},
+    {cells:[7,11],   op:'+', result:3},
+    {cells:[8,9],    op:'+', result:5},
+    {cells:[10,14],  op:'*', result:3},
+    {cells:[12,13],  op:'+', result:5},
+    {cells:[15],     op:' ', result:4},
+  ]
+},
+{
+  sol:[3,4,2,1, 1,2,4,3, 4,3,1,2, 2,1,3,4],
+  cages:[
+    {cells:[0,4],    op:'*', result:3},
+    {cells:[1,2,3],  op:'+', result:7},
+    {cells:[5,9],    op:'+', result:5},
+    {cells:[6,7],    op:'-', result:1},
+    {cells:[8,12],   op:'+', result:6},
+    {cells:[10,11],  op:'*', result:2},
+    {cells:[13,14],  op:'+', result:4},
+    {cells:[15],     op:' ', result:4},
+  ]
+},
+]
+};
+
+const OP_SYM = {'+':'+','-':'-','*':'×','/':'÷',' ':''};
+
+let diff = 'facile';
+let puzzle = null;
+let grille = [];
+let selected = null;
+
+function setDiff(d){
+  diff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('active',b.dataset.diff===d));
+  newGame();
+}
+
+function newGame(){
+  const pool = PUZZLES[diff];
+  puzzle = pool[Math.floor(Math.random()*pool.length)];
+  grille = new Array(16).fill(0);
+  selected = null;
+  document.getElementById('msg').textContent='';
+  document.getElementById('msg').className='msg';
+  render();
+}
+
+// Calcule les bordures de cage pour chaque cellule
+function getCageBorders(){
+  const borders = Array.from({length:16},()=>({top:false,left:false,bottom:false,right:false}));
+  puzzle.cages.forEach(cage=>{
+    const s = new Set(cage.cells);
+    cage.cells.forEach(i=>{
+      const r=Math.floor(i/4), c=i%4;
+      if(!s.has(i-4)) borders[i].top=true;
+      if(!s.has(i+4)) borders[i].bottom=true;
+      if(!s.has(i-1)||c===0) borders[i].left=true;
+      if(!s.has(i+1)||c===3) borders[i].right=true;
+    });
+  });
+  return borders;
+}
+
+function render(){
+  const el = document.getElementById('grille');
+  el.innerHTML='';
+  const borders = getCageBorders();
+  // Première cellule de chaque cage → label
+  const cageFirstCell = {};
+  puzzle.cages.forEach(cage=>{
+    cageFirstCell[cage.cells[0]] = cage;
+  });
+
+  for(let i=0;i<16;i++){
+    const div = document.createElement('div');
+    div.className='cell';
+    const b=borders[i];
+    if(b.top)    div.classList.add('cage-top');
+    if(b.left)   div.classList.add('cage-left');
+    if(b.bottom) div.classList.add('cage-bottom');
+    if(b.right)  div.classList.add('cage-right');
+    if(i===selected) div.classList.add('selected');
+
+    if(cageFirstCell[i]){
+      const cage=cageFirstCell[i];
+      if(cage.cells.length>1||cage.op===' '){
+        const lbl=document.createElement('div');
+        lbl.className='cage-label';
+        lbl.textContent = cage.op===' ' ? cage.result : cage.result+OP_SYM[cage.op];
+        div.appendChild(lbl);
+      }
+    }
+
+    if(grille[i]){
+      const span=document.createElement('span');
+      span.textContent=grille[i];
+      div.appendChild(span);
+    }
+    div.onclick=()=>selectCell(i);
+    el.appendChild(div);
+  }
+}
+
+function selectCell(i){
+  selected=(selected===i)?null:i;
+  render();
+}
+
+function saisir(val){
+  if(selected===null) return;
+  grille[selected]=val;
+  document.getElementById('msg').textContent='';
+  document.getElementById('msg').className='msg';
+  playSaisie();
+  render();
+}
+
+function verifier(){
+  const msg=document.getElementById('msg');
+  // Vide ?
+  const vide=grille.filter(v=>v===0).length;
+  if(vide){msg.textContent=vide+' CASE'+(vide>1?'S':'')+' VIDE'+(vide>1?'S':'');msg.className='msg';return;}
+
+  let erreurs=new Set();
+
+  // Contrainte ligne/colonne
+  for(let r=0;r<4;r++){
+    const lg=[0,1,2,3].map(c=>grille[r*4+c]);
+    if(new Set(lg).size!==4) [0,1,2,3].forEach(c=>erreurs.add(r*4+c));
+  }
+  for(let c=0;c<4;c++){
+    const col=[0,1,2,3].map(r=>grille[r*4+c]);
+    if(new Set(col).size!==4) [0,1,2,3].forEach(r=>erreurs.add(r*4+c));
+  }
+
+  // Contrainte cages
+  puzzle.cages.forEach(cage=>{
+    if(cage.op===' '){
+      if(grille[cage.cells[0]]!==cage.result) erreurs.add(cage.cells[0]);
+      return;
+    }
+    const vals=cage.cells.map(i=>grille[i]);
+    let ok=false;
+    if(cage.op==='+') ok=vals.reduce((a,b)=>a+b,0)===cage.result;
+    else if(cage.op==='-') ok=Math.abs(vals[0]-vals[1])===cage.result;
+    else if(cage.op==='*') ok=vals.reduce((a,b)=>a*b,1)===cage.result;
+    else if(cage.op==='/') ok=Math.max(...vals)/Math.min(...vals)===cage.result;
+    if(!ok) cage.cells.forEach(i=>erreurs.add(i));
+  });
+
+  // Colorier
+  const cells=document.getElementById('grille').children;
+  for(let i=0;i<16;i++){
+    cells[i].classList.remove('ok','err');
+    if(erreurs.has(i)) cells[i].classList.add('err');
+    else cells[i].classList.add('ok');
+  }
+
+  if(erreurs.size===0){msg.textContent='PARFAIT !';msg.className='msg ok';playWin();}
+  else{msg.textContent=erreurs.size+' CASE'+(erreurs.size>1?'S':'')+' EN ERREUR';msg.className='msg err';playErr();}
+}
+
+function showSolution(){
+  grille=[...puzzle.sol];
+  render();
+  document.getElementById('msg').textContent='SOLUTION';
+  document.getElementById('msg').className='msg ok';
+}
+
+newGame();
+</script>
+</body>
+</html>
