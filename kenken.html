@@ -81,6 +81,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   font-family:'Share Tech Mono',monospace;font-size:1.3rem;
   color:rgba(240,236,224,.8);cursor:pointer;transition:all .14s}
 .pad-btn:hover{background:rgba(240,236,224,.15);color:var(--white)}
+.pad-btn.selected-pad{background:var(--yellow);border-color:var(--yellow);color:#1a1400;box-shadow:0 0 8px rgba(240,224,96,.3)}
 .pad-btn.del{font-size:.85rem;color:var(--dim)}
 .pad-btn.del:hover{color:var(--red)}
 
@@ -105,7 +106,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .diff-btn.active{background:var(--yellow);border-color:var(--yellow);color:#1a1400}
 .diff-btn:hover:not(.active){background:rgba(240,236,224,.12);color:var(--white)}
 
-.msg{font-family:'Share Tech Mono',monospace;font-size:.82rem;
+.sol-wrap{display:none;text-align:center}
+.sol-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;
+  color:var(--dim);margin-bottom:.4rem;text-transform:uppercase}
+#sol-grille{display:grid;grid-template-columns:repeat(4,var(--CELL));
+  grid-template-rows:repeat(4,var(--CELL));gap:0;
+  background:var(--green-dark);padding:6px;border-radius:var(--r);
+  border:2px solid var(--green-mid)}
   text-align:center;min-height:1.2rem;letter-spacing:.08em;color:var(--dim)}
 .msg.ok{color:var(--yellow);text-shadow:0 0 8px rgba(240,224,96,.4)}
 .msg.err{color:var(--red)}
@@ -135,6 +142,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
     Chaque cage indique le résultat de l'opération (+&nbsp;−&nbsp;×&nbsp;÷)
   </div>
   <div class="msg" id="msg"></div>
+  <div class="sol-wrap" id="sol-wrap">
+    <div class="sol-label">Solution</div>
+    <div class="sol-grille" id="sol-grille"></div>
+  </div>
   <div class="actions">
     <button class="btn" onclick="newGame()">↺ Nouveau</button>
     <button class="btn primary" onclick="verifier()">Vérifier</button>
@@ -259,7 +270,9 @@ const OP_SYM = {'+':'+','-':'-','*':'×','/':'÷',' ':''};
 let diff = 'facile';
 let puzzle = null;
 let grille = [];
-let selected = null;
+let selectedCell = null;
+let selectedDigit = null;
+let cageFirstCell = {};
 
 function setDiff(d){
   diff=d;
@@ -272,9 +285,12 @@ function newGame(){
   puzzle = pool[Math.floor(Math.random()*pool.length)];
   grille = new Array(16).fill(0);
   selected = null;
+  selectedCell=null; selectedDigit=null;
   document.getElementById('msg').textContent='';
   document.getElementById('msg').className='msg';
-  render();
+  document.getElementById('sol-wrap').style.display='none';
+  cageFirstCell={};
+  render(); renderPad();
 }
 
 // Calcule les bordures de cage pour chaque cellule
@@ -311,7 +327,7 @@ function render(){
     if(b.left)   div.classList.add('cage-left');
     if(b.bottom) div.classList.add('cage-bottom');
     if(b.right)  div.classList.add('cage-right');
-    if(i===selected) div.classList.add('selected');
+    if(i===selectedCell) div.classList.add('selected');
 
     if(cageFirstCell[i]){
       const cage=cageFirstCell[i];
@@ -334,62 +350,101 @@ function render(){
 }
 
 function selectCell(i){
-  selected=(selected===i)?null:i;
+  if(selectedDigit===null){
+    // pas de chiffre sélectionné, on peut juste sélectionner la case
+    selectedCell=(selectedCell===i)?null:i;
+  } else {
+    // chiffre déjà sélectionné → on place dans cette case
+    grille[i]=selectedDigit;
+    document.getElementById('msg').textContent='';
+    document.getElementById('msg').className='msg';
+    playSaisie();
+  }
   render();
 }
 
 function saisir(val){
-  if(selected===null) return;
-  grille[selected]=val;
-  document.getElementById('msg').textContent='';
-  document.getElementById('msg').className='msg';
-  playSaisie();
-  render();
+  if(val===0){
+    // effacer : si case sélectionnée, effacer
+    if(selectedCell!==null){ grille[selectedCell]=0; render(); }
+    selectedDigit=null;
+    renderPad();
+    return;
+  }
+  selectedDigit=(selectedDigit===val)?null:val;
+  renderPad();
+  // Si une case est déjà sélectionnée, placer directement
+  if(selectedDigit!==null && selectedCell!==null){
+    grille[selectedCell]=selectedDigit;
+    document.getElementById('msg').textContent='';
+    document.getElementById('msg').className='msg';
+    playSaisie();
+    render();
+  }
+}
+
+function renderPad(){
+  document.querySelectorAll('.pad-btn:not(.del)').forEach((btn,i)=>{
+    btn.classList.toggle('selected-pad', selectedDigit===(i+1));
+  });
 }
 
 function verifier(){
   const msg=document.getElementById('msg');
-  // Vide ?
   const vide=grille.filter(v=>v===0).length;
   if(vide){msg.textContent=vide+' CASE'+(vide>1?'S':'')+' VIDE'+(vide>1?'S':'');msg.className='msg';return;}
 
-  let erreurs=new Set();
-
-  // Contrainte ligne/colonne
-  for(let r=0;r<4;r++){
-    const lg=[0,1,2,3].map(c=>grille[r*4+c]);
-    if(new Set(lg).size!==4) [0,1,2,3].forEach(c=>erreurs.add(r*4+c));
-  }
-  for(let c=0;c<4;c++){
-    const col=[0,1,2,3].map(r=>grille[r*4+c]);
-    if(new Set(col).size!==4) [0,1,2,3].forEach(r=>erreurs.add(r*4+c));
-  }
-
-  // Contrainte cages
-  puzzle.cages.forEach(cage=>{
-    if(cage.op===' '){
-      if(grille[cage.cells[0]]!==cage.result) erreurs.add(cage.cells[0]);
-      return;
-    }
-    const vals=cage.cells.map(i=>grille[i]);
-    let ok=false;
-    if(cage.op==='+') ok=vals.reduce((a,b)=>a+b,0)===cage.result;
-    else if(cage.op==='-') ok=Math.abs(vals[0]-vals[1])===cage.result;
-    else if(cage.op==='*') ok=vals.reduce((a,b)=>a*b,1)===cage.result;
-    else if(cage.op==='/') ok=Math.max(...vals)/Math.min(...vals)===cage.result;
-    if(!ok) cage.cells.forEach(i=>erreurs.add(i));
-  });
-
-  // Colorier
   const cells=document.getElementById('grille').children;
+  let erreurs=0;
   for(let i=0;i<16;i++){
     cells[i].classList.remove('ok','err');
-    if(erreurs.has(i)) cells[i].classList.add('err');
-    else cells[i].classList.add('ok');
+    if(grille[i]===puzzle.sol[i]) cells[i].classList.add('ok');
+    else{ cells[i].classList.add('err'); erreurs++; }
   }
 
-  if(erreurs.size===0){msg.textContent='PARFAIT !';msg.className='msg ok';playWin();}
-  else{msg.textContent=erreurs.size+' CASE'+(erreurs.size>1?'S':'')+' EN ERREUR';msg.className='msg err';playErr();}
+  if(erreurs===0){
+    msg.textContent='PARFAIT !';msg.className='msg ok';playWin();
+    document.getElementById('sol-wrap').style.display='none';
+  } else {
+    msg.textContent='';msg.className='msg';playErr();
+    renderSolution();
+  }
+}
+
+function renderSolution(){
+  const wrap = document.getElementById('sol-wrap');
+  wrap.style.display='block';
+  const el = document.getElementById('sol-grille');
+  el.innerHTML='';
+  const borders = getCageBorders();
+  const firstCells={};
+  puzzle.cages.forEach(cage=>{ firstCells[cage.cells[0]]=cage; });
+
+  for(let i=0;i<16;i++){
+    const div=document.createElement('div');
+    div.className='cell';
+    div.style.cursor='default';
+    const b=borders[i];
+    if(b.top)    div.classList.add('cage-top');
+    if(b.left)   div.classList.add('cage-left');
+    if(b.bottom) div.classList.add('cage-bottom');
+    if(b.right)  div.classList.add('cage-right');
+    // Label cage
+    if(firstCells[i]){
+      const cage=firstCells[i];
+      if(cage.cells.length>1||cage.op===' '){
+        const lbl=document.createElement('div');
+        lbl.className='cage-label';
+        lbl.textContent=cage.op===' '?cage.result:cage.result+OP_SYM[cage.op];
+        div.appendChild(lbl);
+      }
+    }
+    // Valeur solution — tout en blanc
+    const span=document.createElement('span');
+    span.textContent=puzzle.sol[i];
+    div.appendChild(span);
+    el.appendChild(div);
+  }
 }
 
 function showSolution(){
@@ -397,6 +452,7 @@ function showSolution(){
   render();
   document.getElementById('msg').textContent='SOLUTION';
   document.getElementById('msg').className='msg ok';
+  document.getElementById('sol-wrap').style.display='none';
 }
 
 newGame();
