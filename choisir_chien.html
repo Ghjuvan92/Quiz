@@ -144,7 +144,6 @@ body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;display:fle
       <button class="list-btn" onclick="startGame('frequent')">🐕 Chiens fréquents <span>47 races</span></button>
       <button class="list-btn" onclick="startGame('rare')">🦴 Chiens rares <span>191 races</span></button>
       <button class="list-btn" onclick="startGame('all')">✦ Tous les chiens <span>237 races</span></button>
-      <button class="list-btn" onclick="startGame('test')">🧪 Test rapide <span>10 chiens</span></button>
     </div>
   </div>
 </div>
@@ -177,7 +176,6 @@ let picked = false;
 function getList(mode) {
   if(mode==='frequent') return DOGS.filter(d=>['Très fréquent','Fréquent','Moyennement fréquent'].includes(d.rarete));
   if(mode==='rare')     return DOGS.filter(d=>['Rare','Très rare'].includes(d.rarete));
-  if(mode==='test')     return shuf(DOGS).slice(0, 10);
   return DOGS;
 }
 
