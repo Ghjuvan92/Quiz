@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choisir son Chien</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#d4601a;--orange-mid:#e8854a;--brown:#7a3b10;--r:12px;--rs:8px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:.75rem .75rem 1.5rem;
+  background:radial-gradient(ellipse 120% 60% at 30% 20%,rgba(196,82,18,0) 0%,#7a3b10 45%,#4a2008 100%),linear-gradient(160deg,#a04010 0%,#6a2e08 40%,#3a1804 100%)}
+
+/* NAV */
+.nav{width:100%;max-width:540px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.back{font-size:.8rem;color:rgba(253,246,238,.6);text-decoration:none}.back:hover{color:#fdf6ee}
+.hdr{text-align:center;flex:1}
+.hdr h1{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:400;color:#fdf6ee}
+.hdr h1 em{font-style:italic;color:var(--orange-mid)}
+
+/* ROUND INFO */
+.round-info{width:100%;max-width:540px;display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-size:.75rem;color:rgba(253,246,238,.6)}
+.round-info strong{color:#fdf6ee}
+.prog{height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:.6rem;width:100%;max-width:540px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--orange-mid),#f0a060);border-radius:2px;transition:width .4s ease}
+
+/* ÉCRAN CHOIX DE LISTE */
+.screen{width:100%;max-width:540px;display:none}
+.screen.on{display:block;animation:slin .25s ease}
+@keyframes slin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.list-card{background:rgba(255,255,255,.97);border-radius:var(--r);padding:1.6rem 1.4rem;text-align:center;box-shadow:0 4px 20px rgba(42,26,14,.35);position:relative;overflow:hidden}
+.list-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--brown),var(--orange),var(--orange-mid),var(--orange),var(--brown))}
+.list-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:400;color:#2a1a0e;margin-bottom:.3rem}
+.list-title em{font-style:italic;color:var(--orange)}
+.list-sub{font-size:.8rem;color:#a07850;margin-bottom:1.2rem}
+.list-btns{display:flex;flex-direction:column;gap:.6rem}
+.list-btn{padding:.75rem 1rem;border-radius:var(--rs);border:1.5px solid rgba(212,96,26,.35);background:transparent;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;color:var(--orange);cursor:pointer;transition:all .18s;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.list-btn:hover{background:var(--orange);color:white;border-color:var(--orange)}
+.list-btn span{font-size:.75rem;opacity:.6;font-weight:400}
+
+/* DUEL — layout selon schéma v4 */
+.duel-wrap{width:100%;max-width:540px;border-radius:var(--r);overflow:hidden;
+  box-shadow:0 4px 16px rgba(42,26,14,.3);margin-bottom:.5rem;
+  background:#5c2a08;position:relative}
+.duel-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown));z-index:1}
+
+/* Rangée noms : nom A centré sur photo A, nom B centré sur photo B, zone C invisible */
+.duel-names{display:flex}
+.duel-name-a{flex:1;font-family:'Playfair Display',serif;font-size:.82rem;
+  font-weight:400;color:#fdf6ee;padding:.4rem .5rem .3rem;text-align:center;
+  cursor:pointer;border-bottom:1px solid rgba(255,255,255,.1)}
+.duel-name-c{width:160px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.1)}
+.duel-name-b{flex:1;font-family:'Playfair Display',serif;font-size:.82rem;
+  font-weight:400;color:#fdf6ee;padding:.4rem .5rem .3rem;text-align:center;
+  cursor:pointer;border-bottom:1px solid rgba(255,255,255,.1)}
+
+/* Corps principal : photo A | zone C | photo B */
+.duel-body{display:flex}
+
+/* Photos — flex:1, descendent jusqu'en bas */
+.duel-photo{flex:1;background:var(--brown);display:flex;align-items:center;
+  justify-content:center;min-height:150px;cursor:pointer}
+.duel-photo img{max-width:100%;height:auto;display:block;object-fit:contain}
+.duel-photo.winner{outline:3px solid #3a6b2a}
+.duel-photo.loser{opacity:.3;filter:grayscale(.5);pointer-events:none}
+
+/* Zone C — largeur fixe 160px */
+.duel-zone-c{width:160px;flex-shrink:0;display:flex;flex-direction:column;background:#4a2208}
+
+/* Carac — prend l'espace disponible */
+.duel-carac{flex:1;padding:.35rem .3rem .2rem}
+.carac-item{margin-bottom:0}
+.carac-label{font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;
+  color:#c8884a;font-weight:500;text-align:center;display:block;margin-bottom:.15rem;margin-top:.65rem}
+.carac-item:first-child .carac-label{margin-top:0}
+.carac-dots-row{display:flex;align-items:center;justify-content:center;gap:0}
+.carac-dots-left{display:flex;flex-direction:row-reverse;gap:2px;padding-right:6px}
+.carac-sep{color:rgba(253,246,238,.3);font-size:.65rem;flex-shrink:0;line-height:1;padding:0 2px}
+.carac-dots-right{display:flex;gap:2px;padding-left:6px}
+.dot{width:7px;height:7px;border-radius:50%;border:1.2px solid rgba(255,255,255,.2);
+  background:transparent;flex-shrink:0}
+.dot.on{background:var(--orange-mid);border-color:var(--orange-mid)}
+
+/* Boutons — centrés, espacés */
+.duel-btns{display:flex;flex-direction:column;gap:8px;padding:.3rem .4rem .45rem;align-items:center}
+.pick-btn{display:block;width:75%;padding:.4rem .2rem;
+  border-radius:7px;border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;
+  font-size:.7rem;font-weight:500;color:rgba(253,246,238,.75);
+  cursor:pointer;transition:all .18s;text-align:center;line-height:1.3}
+.pick-btn:hover{background:rgba(255,255,255,.22);color:#fdf6ee}
+
+/* Loser sur nom aussi */
+.duel-name-a.loser,.duel-name-b.loser{opacity:.3;pointer-events:none}
+
+/* NEXT DUEL BTN (shown after pick) */
+
+
+/* RÉSULTAT FINAL */
+.result-card{background:rgba(255,255,255,.97);border-radius:var(--r);padding:1.5rem 1.2rem;text-align:center;box-shadow:0 4px 28px rgba(42,26,14,.4);position:relative;overflow:hidden}
+.result-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--brown),var(--orange),var(--orange-mid),var(--orange),var(--brown))}
+.result-eye{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);font-weight:500;margin-bottom:.4rem}
+.result-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:400;color:#2a1a0e;margin-bottom:.8rem}
+.result-title em{font-style:italic;color:var(--orange)}
+.result-photo{background:var(--brown);border-radius:8px;overflow:hidden;margin:0 auto .8rem;width:60%;display:flex;align-items:center;justify-content:center}
+.result-photo img{max-width:100%;max-height:180px;width:auto;height:auto;display:block;object-fit:contain}
+.result-name{font-family:'Playfair Display',serif;font-size:1.5rem;color:#2a1a0e;margin-bottom:.7rem}
+.result-traits{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1.2rem;text-align:left}
+.result-trait{display:flex;flex-direction:column;gap:.15rem}
+.result-lbl{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#a07850;font-weight:500}
+.result-dots{display:flex;gap:3px}
+.result-dot{width:11px;height:11px;border-radius:50%;border:1.5px solid #d4b896;background:transparent}
+.result-dot.on{background:var(--orange);border-color:var(--orange)}
+.restart-btn{padding:9px 22px;border-radius:40px;background:var(--orange);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;cursor:pointer;transition:background .18s}
+.restart-btn:hover{background:var(--brown)}
+
+/* NO DOGS */
+.no-dogs{background:rgba(255,255,255,.97);border-radius:var(--r);padding:1.8rem 1.4rem;text-align:center;box-shadow:0 4px 20px rgba(42,26,14,.35)}
+.no-dogs p{color:#5c3a1e;font-size:.9rem;margin-bottom:1rem}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="back" href="index.html">← Accueil</a>
+  <div class="hdr"><h1>🐕 <em>Choisir son Chien</em></h1></div>
+</div>
+
+<div class="round-info" id="round-info" style="display:none">
+  <span>Tour <strong id="round-num">1</strong></span>
+  <span>Duel <strong id="duel-num">1</strong> / <strong id="duel-total">—</strong></span>
+  <span><strong id="survivors-count">—</strong> restants</span>
+</div>
+<div class="prog" id="prog-wrap" style="display:none"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+<!-- ÉCRAN 1 : choix liste -->
+<div class="screen on" id="screen-list">
+  <div class="list-card">
+    <div class="list-title">Quel type de chien <em>cherches-tu ?</em></div>
+    <div class="list-sub">Choisis une liste</div>
+    <div class="list-btns">
+      <button class="list-btn" onclick="startGame('frequent')">🐕 Chiens fréquents <span>47 races</span></button>
+      <button class="list-btn" onclick="startGame('rare')">🦴 Chiens rares <span>191 races</span></button>
+      <button class="list-btn" onclick="startGame('all')">✦ Tous les chiens <span>238 races</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN 2 : duel -->
+<div class="screen" id="screen-duel">
+  <div class="duel-wrap" id="duel-wrap"></div>
+</div>
+
+<!-- ÉCRAN 3 : résultat -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="result-card"></div>
+</div>
+
+<script>
+const PHOTO_DIR = 'photos_centrale_canine/';
+
+const DOGS = [{"nom": "Beauceron", "fichier": "beauceron.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 5}, {"nom": "Saint Bernard", "fichier": "saint_bernard.webp", "rarete": "Fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 4, "sportif": 3}, {"nom": "Terrier Jack Russell", "fichier": "terrier_jack_russell.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 5}, {"nom": "Setter Anglais", "fichier": "setter_anglais.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Samoyede", "fichier": "samoyede.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Caniche", "fichier": "caniche.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 3}, {"nom": "Husky", "fichier": "husky.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 5}, {"nom": "Boxer", "fichier": "boxer.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Bichon Maltais", "fichier": "bichon_maltais.webp", "rarete": "Fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 3, "sportif": 3}, {"nom": "Bouvier Bernois", "fichier": "bouvier_bernois.webp", "rarete": "Fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Dalmatien", "fichier": "dalmatien.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 1, "sportif": 4}, {"nom": "Shiba", "fichier": "shiba.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Akita", "fichier": "akita.webp", "rarete": "Fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 2, "sportif": 2}, {"nom": "Akita Americain", "fichier": "akita_americain.webp", "rarete": "Fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Teckel", "fichier": "teckel.webp", "rarete": "Fréquent", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Weimar", "fichier": "weimar.webp", "rarete": "Moyennement fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 2, "sportif": 5}, {"nom": "Pointer Anglais", "fichier": "pointer_anglais.webp", "rarete": "Moyennement fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 5, "sportif": 5}, {"nom": "Bichon Havanais", "fichier": "bichon_havanais.webp", "rarete": "Moyennement fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 3, "sportif": 2}, {"nom": "Springer Anglais", "fichier": "springer_anglais.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Braque Allemand", "fichier": "braque_allemand.webp", "rarete": "Moyennement fréquent", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Bobtail", "fichier": "bobtail.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Shih Tzu", "fichier": "shih_tzu.webp", "rarete": "Moyennement fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 3, "sportif": 2}, {"nom": "Malamute", "fichier": "malamute.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 5}, {"nom": "Dogue Allemand", "fichier": "dogue_allemand.webp", "rarete": "Moyennement fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Carlin", "fichier": "carlin.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 2}, {"nom": "Eurasier", "fichier": "eurasier.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Dogue de Bordeaux", "fichier": "dogue_de_bordeaux.webp", "rarete": "Moyennement fréquent", "affectueux": 5, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Schnauzer Géant", "fichier": "schnauzer_géant.webp", "rarete": "Moyennement fréquent", "affectueux": 3, "intelligent": 5, "obeissant": 2, "sportif": 4}, {"nom": "Pudelpointer", "fichier": "pudelpointer.webp", "rarete": "Moyennement fréquent", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Leonberg", "fichier": "leonberg.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 2}, {"nom": "Hovawart", "fichier": "hovawart.webp", "rarete": "Moyennement fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Lhassa", "fichier": "lhassa.webp", "rarete": "Moyennement fréquent", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 2}, {"nom": "Shar Pei", "fichier": "shar_pei.webp", "rarete": "Moyennement fréquent", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 2}, {"nom": "Kelpie", "fichier": "kelpie.webp", "rarete": "Rare", "affectueux": 3, "intelligent": 4, "obeissant": 4, "sportif": 4}, {"nom": "Greyhound", "fichier": "greyhound.webp", "rarete": "Rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 5}, {"nom": "Barbet", "fichier": "barbet.webp", "rarete": "Rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 3}, {"nom": "Saluki", "fichier": "saluki.webp", "rarete": "Rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 5}, {"nom": "Cairn", "fichier": "cairn.webp", "rarete": "Rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Bullmastiff", "fichier": "bullmastiff.webp", "rarete": "Rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Tosa", "fichier": "tosa.webp", "rarete": "Rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Barzoi", "fichier": "barzoi.webp", "rarete": "Rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 2}, {"nom": "Bouvier des Flandres", "fichier": "bouvier_des_flandres.webp", "rarete": "Rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Airedale Terrier", "fichier": "airedale_terrier.webp", "rarete": "Rare", "affectueux": 3, "intelligent": 3, "obeissant": 1, "sportif": 4}, {"nom": "Basset Hound", "fichier": "basset_hound.webp", "rarete": "Rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Berger Allemand", "fichier": "berger_allemand.webp", "rarete": "Très fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 5, "sportif": 5}, {"nom": "Berger Belge Malinois", "fichier": "berger_belge_malinois.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 5, "obeissant": 4, "sportif": 5}, {"nom": "Golden", "fichier": "golden.webp", "rarete": "Très fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 2, "sportif": 3}, {"nom": "Cocker Anglais", "fichier": "cocker_anglais.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 5, "obeissant": 2, "sportif": 4}, {"nom": "Labrador", "fichier": "labrador.webp", "rarete": "Très fréquent", "affectueux": 5, "intelligent": 5, "obeissant": 4, "sportif": 5}, {"nom": "Border Collie", "fichier": "border_collie.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 5}, {"nom": "Cocker Am", "fichier": "cocker_am.webp", "rarete": "Très fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 5, "sportif": 3}, {"nom": "Beagle", "fichier": "beagle.webp", "rarete": "Très fréquent", "affectueux": 5, "intelligent": 4, "obeissant": 2, "sportif": 5}, {"nom": "Rottweiler", "fichier": "rottweiler.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 5, "obeissant": 1, "sportif": 4}, {"nom": "Beagle Harrier", "fichier": "beagle_harrier.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 3, "obeissant": 4, "sportif": 4}, {"nom": "Cavalier", "fichier": "cavalier.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 2}, {"nom": "Chihuahua", "fichier": "chihuahua.webp", "rarete": "Très fréquent", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Bouledogue Francais", "fichier": "bouledogue_francais_coline.webp", "rarete": "Très fréquent", "affectueux": 5, "intelligent": 3, "obeissant": 1, "sportif": 2}, {"nom": "Berger Belge Groenendael", "fichier": "berger_belge_groenendael.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 4}, {"nom": "Retriever Plat", "fichier": "retriever_plat.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 5, "obeissant": 5, "sportif": 4}, {"nom": "Field", "fichier": "field.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 4, "sportif": 3}, {"nom": "Épagneul Breton", "fichier": "epagneul_breton.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 4, "obeissant": 3, "sportif": 5}, {"nom": "Dogue Argentin", "fichier": "dogue_argentin.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 4, "sportif": 5}, {"nom": "Petit Chien Lion", "fichier": "petit_chien_lion.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 4, "obeissant": 5, "sportif": 4}, {"nom": "Doberman", "fichier": "doberman.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Cursinu", "fichier": "cursinu.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 4, "sportif": 4}, {"nom": "Berger Blanc Suisse", "fichier": "berger_blanc_suisse.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 4, "sportif": 5}, {"nom": "Bull Terrier", "fichier": "bull_terrier.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 4}, {"nom": "Berger Belge Laekenois", "fichier": "berger_belge_laekenois.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 4}, {"nom": "Spinone", "fichier": "spinone.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 4, "sportif": 4}, {"nom": "Retriever Chesapeake", "fichier": "retriever_chesapeake.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 5}, {"nom": "Finnois", "fichier": "finnois.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 5}, {"nom": "Chien d Eau Portugais", "fichier": "chien_d_eau_portugais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 4, "sportif": 4}, {"nom": "Braque de L Ariege", "fichier": "braque_de_l_ariege.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 5}, {"nom": "Mudi", "fichier": "mudi.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Épagneul Picard", "fichier": "epagneul_picard.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Épagneul Francais", "fichier": "epagneul_francais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Chien de Montagne des Pyrénées", "fichier": "chien_de_montagne_des_pyrenees.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Border Terrier", "fichier": "border_terrier.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Chien d Eau Espagnol", "fichier": "chien_d_eau_espagnol.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Berger Australien", "fichier": "berger_australien_coline.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 5}, {"nom": "Affenpinscher", "fichier": "affenpinscher.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Slovaque Poil Dur", "fichier": "slovaque_poil_dur.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Pont Audemer", "fichier": "pont_audemer.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 4, "sportif": 5}, {"nom": "Lévrier Hongrois", "fichier": "lévrier_hongrois.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Lévrier Espagnol", "fichier": "levrier_espagnol.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Lévrier Ecossais", "fichier": "lévrier_ecossais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Berger Catalan", "fichier": "berger_catalan.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 4, "sportif": 4}, {"nom": "Chien Norvegien de Macareux", "fichier": "chien_norvegien_de_macareux.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Braque Hongrois a Poil Court", "fichier": "braque_hongrois_a_poil_court.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 4, "sportif": 4}, {"nom": "Bouvier Australien", "fichier": "bouvier_australien.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 4, "sportif": 4}, {"nom": "Berger Belge Tervueren", "fichier": "berger_belge_tervueren.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 5}, {"nom": "Bedlington Terrier", "fichier": "bedlington_terrier.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Azawakh", "fichier": "azawakh.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 5}, {"nom": "Setter Irlandais Rouge", "fichier": "setter_irlandais_rouge.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 5}, {"nom": "Rouge de Bavière", "fichier": "rouge_de_bavière.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Petit Lévrier", "fichier": "petit_levrier.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Norfolk", "fichier": "norfolk.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 4, "sportif": 4}, {"nom": "Matin de Naples", "fichier": "matin_de_naples.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Épagneul Nain", "fichier": "epagneul_nain.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 3, "obeissant": 3, "sportif": 2}, {"nom": "Chien de Saint Hubert", "fichier": "chien_de_saint_hubert.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Chien d Arrêt Frison", "fichier": "chien_d_arret_frison.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 5}, {"nom": "Chien d Arrêt Allemand a Poil Long", "fichier": "chien_d_arret_allemand_a_poil_long.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Braque d Auvergne", "fichier": "braque_d_auvergne.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 4, "sportif": 4}, {"nom": "Brachet Polonais", "fichier": "brachet_polonais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 4, "sportif": 5}, {"nom": "Boston", "fichier": "boston.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Bichon Bolonais", "fichier": "bichon_bolonais.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 4, "obeissant": 5, "sportif": 3}, {"nom": "Berger Isl", "fichier": "berger_isl.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Terrier Noir Russe", "fichier": "terrier_noir_russe.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 5, "obeissant": 3, "sportif": 3}, {"nom": "Terrier Japonais", "fichier": "terrier_japonais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Schipperke", "fichier": "schipperke.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Pumi", "fichier": "pumi.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Petit Basset Griffon", "fichier": "petit_basset_griffon.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Norwich", "fichier": "norwich.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 4, "sportif": 3}, {"nom": "Lévrier Irlandais", "fichier": "lévrier_irlandais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Komondor", "fichier": "komondor.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 4, "obeissant": 3, "sportif": 3}, {"nom": "Kai", "fichier": "kai.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Hokkaido", "fichier": "hokkaido.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Fox Dur", "fichier": "fox_dur.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Épagneul Bleu de Picardie", "fichier": "epagneul_bleu_de_picardie.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Corgi Pembroke", "fichier": "corgi_pembroke.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Clumber", "fichier": "clumber.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 2}, {"nom": "Braque du Bourbonnais", "fichier": "braque_du_bourbonnais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Braque de Burgos", "fichier": "braque_de_burgos.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Berger Hollandais", "fichier": "berger_hollandais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 1, "sportif": 5}, {"nom": "Bearded Collie", "fichier": "bearded_collie.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Terrier Tcheque", "fichier": "terrier_tcheque.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Terrier Bresilien", "fichier": "terrier_bresilien.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Smous des Pays Bas", "fichier": "smous_des_pays_bas.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Sloughi Phoenix des Cinq Tribus", "fichier": "sloughi_phoenix_des_cinq_tribus.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 5}, {"nom": "Shikoku", "fichier": "shikoku.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Pinscher Nain", "fichier": "pinscher_nain.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 4, "sportif": 3}, {"nom": "Petit Chien Courant Suisse", "fichier": "petit_chien_courant_suisse.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Matin de Lalentejo", "fichier": "matin_de_lalentejo.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Mastiff", "fichier": "mastiff.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 1, "sportif": 3}, {"nom": "Manchester", "fichier": "manchester.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Lévrier Polonais", "fichier": "levrier_polonais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Lévrier Afghan", "fichier": "levrier_afghan.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Lakeland", "fichier": "lakeland.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Kromfohrlander", "fichier": "kromfohrlander.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Korthals", "fichier": "korthals.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Jindo Coreen", "fichier": "jindo_coreen.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Hongrois", "fichier": "hongrois.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Griffon Bleu", "fichier": "griffon_bleu.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Griffon Belge", "fichier": "griffon_belge.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 3}, {"nom": "Cirneco de L Etna", "fichier": "cirneco_de_l_etna169.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien de Race Billy Debout", "fichier": "chien_de_race_billy_debout.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 5}, {"nom": "Chien de Berger de Majorque", "fichier": "chien_de_berger_de_majorque.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Chien Dartois", "fichier": "chien_dartois.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien d Eau Frison", "fichier": "chien_d_eau_frison.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien d Eau Americain", "fichier": "chien_d_eau_americain.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien d Arrêt Portugais", "fichier": "chien_d_arret_portugais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant de Schiller", "fichier": "chien_courant_de_schiller.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant de Bosnie a Poil Dur", "fichier": "chien_courant_de_bosnie_a_poil_dur.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Cardigan", "fichier": "cardigan.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Briquet Griffon Vendeen", "fichier": "briquet_griffon_vendeen.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Braque Italien", "fichier": "braque_italien.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 5, "obeissant": 3, "sportif": 3}, {"nom": "Biewer", "fichier": "biewer_pierrette_escoffier_1.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 2}, {"nom": "Berger Polonais", "fichier": "berger_polonais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Basset de Westphalie", "fichier": "basset_de_westphalie.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Basset Bleu", "fichier": "basset_bleu.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Basset Artesien", "fichier": "basset_artesien.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Barbu Tcheque", "fichier": "barbu_tcheque.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Ariegeois", "fichier": "ariegeois.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 4, "sportif": 4}, {"nom": "Volpino Italien", "fichier": "volpino_italien.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Thailandais", "fichier": "thailandais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Terrier Tibetain", "fichier": "terrier_tibetain.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Terrier Australien", "fichier": "terrier_australien.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Sussex Spaniel", "fichier": "sussex_spaniel.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 4, "sportif": 3}, {"nom": "Spitz Finlandais", "fichier": "spitz_finlandais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Setter Gordon", "fichier": "setter_gordon.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Sealyham Terrier079 Strano Sia012", "fichier": "sealyham_terrier079_strano_sia012.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Puli", "fichier": "puli.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Petit Brabançon", "fichier": "petit_brabançon.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 3, "sportif": 2}, {"nom": "Landseer", "fichier": "landseer.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Laika Russo Europeen", "fichier": "laika_russo_europeen.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Laika de Siberie Orientale", "fichier": "laika_de_siberie_orientale.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Laika de Siberie Occidentale", "fichier": "laika_de_siberie_occidentale.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Kishu", "fichier": "kishu.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Hollandais", "fichier": "hollandais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Griffon Nivernais", "fichier": "griffon_nivernais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Griffon Fauve", "fichier": "griffon_fauve.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Grand Gascon", "fichier": "grand_gascon.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Grand Bouvier Suisse", "fichier": "grand_bouvier_suisse.webp", "rarete": "Très rare", "affectueux": 5, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Foxhound Anglais", "fichier": "foxhound_anglais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Foxhound Americain", "fichier": "foxhound_americain.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Épagneul Japonais", "fichier": "epagneul_japonais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 2, "sportif": 2}, {"nom": "Dandie", "fichier": "dandie.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 2}, {"nom": "Chien de Perdrix de Drente", "fichier": "chien_de_perdrix_de_drente.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien d Elan Suedois", "fichier": "chien_d_elan_suedois.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien d Elan Norvegien Noir", "fichier": "chien_d_elan_norvegien_noir.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant Suisse", "fichier": "chien_courant_suisse.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant Grec", "fichier": "chien_courant_grec.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant de Hygen", "fichier": "chien_courant_de_hygen.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Chien Courant de Hamilton", "fichier": "chien_courant_de_hamilton.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant d Istrie a Poil Court", "fichier": "chien_courant_d_istrie_a_poil_court.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Canaan", "fichier": "canaan.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Broholmer", "fichier": "broholmer.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Bouvier d Appenzell", "fichier": "bouvier_d_appenzell.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Berger Roumain de Mioritza", "fichier": "berger_roumain_de_mioritza.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 4}, {"nom": "Terrier Kerry Blue", "fichier": "terrier_kerry_blue.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Spitz Japonais", "fichier": "spitz_japonais.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 2}, {"nom": "Spitz Allemand", "fichier": "spitz_allemand.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 4, "sportif": 3}, {"nom": "Skye Terrier", "fichier": "skye_terrier.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 2}, {"nom": "Rhodesian", "fichier": "rhodesian.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Pinscher Autrichien", "fichier": "pinscher_autrichien.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Ours de Carélie", "fichier": "ours_de_carélie.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Maremme", "fichier": "maremme.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 3}, {"nom": "Grand Anglo Francais Blanc et Orange", "fichier": "grand_anglo_francais_blanc_et_orange.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Grand Anglo Francais Blanc et Noir", "fichier": "grand_anglo_francais_blanc_et_noir.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Francais Tricolore", "fichier": "francais_tricolore.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Fila Brasileiro", "fichier": "fila_brasileiro.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 3}, {"nom": "Épagneul Tibetain", "fichier": "epagneul_tibetain.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 4, "sportif": 2}, {"nom": "Chien Nu du Perou", "fichier": "chien_nu_du_perou.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Chien de Castro Laboreiro", "fichier": "chien_de_castro_laboreiro.webp", "rarete": "Très rare", "affectueux": 2, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Chien Courant Serbe", "fichier": "chien_courant_serbe.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant d Istrie a Poil Dur", "fichier": "chien_courant_d_istrie_a_poil_dur.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Chinois", "fichier": "chien_chinois.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 2}, {"nom": "Braque Hongrois a Poil Dur", "fichier": "braque_hongrois_a_poil_dur.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Brachet Tyrolien", "fichier": "brachet_tyrolien.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Brachet de Styrie a Poil Dur", "fichier": "brachet_de_styrie_a_poil_dur.webp", "rarete": "Très rare", "affectueux": 2, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Brachet Autrichien Noir et Feu", "fichier": "brachet_autrichien_noir_et_feu.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Berger Roumain des Carpathes", "fichier": "berger_roumain_des_carpathes.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 3, "sportif": 3}, {"nom": "Berger du Caucase", "fichier": "berger_du_caucase.webp", "rarete": "Très rare", "affectueux": 2, "intelligent": 4, "obeissant": 2, "sportif": 4}, {"nom": "Berger de Russie Meridionale", "fichier": "berger_de_russie_meridionale.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 1, "sportif": 4}, {"nom": "Berger de Brie Briard", "fichier": "berger_de_brie_briard.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 1, "sportif": 4}, {"nom": "Terrier Irlandais", "fichier": "terrier_irlandais.webp", "rarete": "Très rare", "affectueux": 2, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Terrier Ecossais", "fichier": "terrier_ecossais.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 4, "obeissant": 2, "sportif": 2}, {"nom": "Spitz de Norrbotten Copie", "fichier": "spitz_de_norrbotten379_copie.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Saarloos", "fichier": "saarloos.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 4, "obeissant": 1, "sportif": 4}, {"nom": "Matin Pyrénées", "fichier": "matin_pyrénées.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 2}, {"nom": "Chien Courant Slovaque", "fichier": "chien_courant_slovaque.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Chien Courant Norvegien", "fichier": "chien_courant_norvegien.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 3, "sportif": 4}, {"nom": "Chien Courant Espagnol", "fichier": "chien_courant_espagnol.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 3}, {"nom": "Chien Courant du Smaland", "fichier": "chien_courant_du_smaland.webp", "rarete": "Très rare", "affectueux": 4, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Basset Fauve de Bretagne", "fichier": "basset_fauve_de_bretagne.webp", "rarete": "Très rare", "affectueux": 3, "intelligent": 3, "obeissant": 3, "sportif": 2}, {"nom": "Poitevin", "fichier": "poitevin.webp", "rarete": "Très rare", "affectueux": 2, "intelligent": 3, "obeissant": 2, "sportif": 4}, {"nom": "Grand Basset Griffon Vendeen", "fichier": "grand_basset_griffon_vendeen.webp", "rarete": "Très rare", "affectueux": 2, "intelligent": 3, "obeissant": 2, "sportif": 4}];
+
+const shuf = a => [...a].sort(()=>Math.random()-.5);
+
+// ── State
+let pool = [];        // chiens encore en lice ce tour
+let duels = [];       // paires du tour courant [[a,b], ...]
+let winners = [];     // gagnants du tour courant
+let duelIdx = 0;
+let roundNum = 1;
+let picked = false;
+
+function getList(mode) {
+  if(mode==='frequent') return DOGS.filter(d=>['Très fréquent','Fréquent','Moyennement fréquent'].includes(d.rarete));
+  if(mode==='rare')     return DOGS.filter(d=>['Rare','Très rare'].includes(d.rarete));
+  return DOGS;
+}
+
+function startGame(mode) {
+  pool = shuf(getList(mode));
+  roundNum = 1; winners = [];
+  buildDuels();
+  showScreen('screen-duel');
+  document.getElementById('round-info').style.display='flex';
+  document.getElementById('prog-wrap').style.display='block';
+  showDuel();
+}
+
+function buildDuels() {
+  duels = [];
+  const p = [...pool];
+  // si impair, réutiliser le premier
+  if(p.length % 2 === 1) p.push(p[0]);
+  for(let i=0;i<p.length;i+=2) duels.push([p[i],p[i+1]]);
+  duelIdx = 0;
+  winners = [];
+}
+
+function showDuel() {
+  picked = false;
+  const [a, b] = duels[duelIdx];
+  const wrap = document.getElementById('duel-wrap');
+  wrap.innerHTML = dogCard(a, b);
+  updHUD();
+}
+
+function nextDuel(){showDuel()}
+
+function dogCard(a, b) {
+  const carac = (lbl, va, vb) => `
+    <div class="carac-item">
+      <span class="carac-label">${lbl}</span>
+      <div class="carac-dots-row">
+        <div class="carac-dots-left">${dotsHtml(va)}</div>
+        <span class="carac-sep">–</span>
+        <div class="carac-dots-right">${dotsHtml(vb)}</div>
+      </div>
+    </div>`;
+
+  return `
+    <div class="duel-names">
+      <div class="duel-name-a" onclick="pick(0)">${a.nom}</div>
+      <div class="duel-name-c"></div>
+      <div class="duel-name-b" onclick="pick(1)">${b.nom}</div>
+    </div>
+    <div class="duel-body">
+      <div class="duel-photo" id="duel-photo-0" onclick="pick(0)">
+        <img src="${PHOTO_DIR}${a.fichier}" alt="${a.nom}" loading="lazy">
+      </div>
+      <div class="duel-zone-c">
+        <div class="duel-carac">
+          ${carac('Affectueux', a.affectueux, b.affectueux)}
+          ${carac('Intelligent', a.intelligent, b.intelligent)}
+          ${carac('Obéissant',  a.obeissant,  b.obeissant)}
+          ${carac('Sportif',    a.sportif,    b.sportif)}
+        </div>
+        <div class="duel-btns">
+          <button class="pick-btn" onclick="pickNone()">Aucun des deux</button>
+          <button class="pick-btn" onclick="pickBoth()">Les deux !</button>
+        </div>
+      </div>
+      <div class="duel-photo" id="duel-photo-1" onclick="pick(1)">
+        <img src="${PHOTO_DIR}${b.fichier}" alt="${b.nom}" loading="lazy">
+      </div>
+    </div>`;
+}
+
+function dotsHtml(val) {
+  let h='';
+  for(let i=1;i<=5;i++) h+=`<div class="dot${i<=val?' on':''}"></div>`;
+  return h;
+}
+
+function pick(idx) {
+  if(picked) return;
+  picked = true;
+  const photos = document.getElementById('duel-wrap').querySelectorAll('.duel-photo');
+  const names  = [document.querySelector('.duel-name-a'), document.querySelector('.duel-name-b')];
+  photos[idx].classList.add('winner');
+  photos[1-idx].classList.add('loser');
+  if(names[1-idx]) names[1-idx].classList.add('loser');
+  winners.push(duels[duelIdx][idx]);
+  hideBtns();
+  duelIdx++;
+  updHUD();
+  setTimeout(() => advanceAfterPick(), 600);
+}
+
+function pickBoth() {
+  if(picked) return;
+  picked = true;
+  winners.push(duels[duelIdx][0]);
+  winners.push(duels[duelIdx][1]);
+  document.getElementById('duel-wrap').querySelectorAll('.duel-photo').forEach(p=>p.classList.add('winner'));
+  hideBtns();
+  duelIdx++;
+  updHUD();
+  setTimeout(() => advanceAfterPick(), 600);
+}
+
+function hideBtns() {
+  const btns = document.querySelector('.duel-btns');
+  if(btns) btns.style.visibility='hidden';
+}
+
+function pickNone() {
+  if(picked) return;
+  picked = true;
+  document.getElementById('duel-wrap').querySelectorAll('.duel-photo').forEach(p=>p.classList.add('loser'));
+  hideBtns();
+  duelIdx++;
+  updHUD();
+  setTimeout(() => advanceAfterPick(), 600);
+}
+
+function advanceAfterPick() {
+  if(duelIdx < duels.length) {
+    showDuel();
+  } else {
+    // end of round
+    if(winners.length === 0) {
+      // nobody survived — restart same pool reshuffled
+      pool = shuf(pool);
+      roundNum++;
+      buildDuels();
+      showDuel();
+    } else if(winners.length === 1) {
+      showResult(winners[0]);
+    } else {
+      // next round
+      pool = winners;
+      roundNum++;
+      buildDuels();
+      showDuel();
+    }
+  }
+}
+
+function updHUD() {
+  document.getElementById('round-num').textContent = roundNum;
+  document.getElementById('duel-num').textContent = duelIdx+1 > duels.length ? duels.length : duelIdx+1;
+  document.getElementById('duel-total').textContent = duels.length;
+  document.getElementById('survivors-count').textContent = pool.length;
+  const pct = duels.length ? duelIdx/duels.length*100 : 0;
+  document.getElementById('prog').style.width = pct+'%';
+}
+
+function showResult(dog) {
+  document.getElementById('round-info').style.display='none';
+  document.getElementById('prog-wrap').style.display='none';
+  showScreen('screen-result');
+
+  let dotsResult = (id,val) => {
+    let h='';for(let i=1;i<=5;i++)h+=`<div class="result-dot${i<=val?' on':''}"></div>`;return h;
+  };
+
+  document.getElementById('result-card').innerHTML = `
+    <div class="result-eye">Votre chien idéal</div>
+    <div class="result-title">C'est le <em>${dog.nom}</em> !</div>
+    <div class="result-photo"><img src="${PHOTO_DIR}${dog.fichier}" alt="${dog.nom}"></div>
+    <div class="result-traits">
+      <div class="result-trait"><div class="result-lbl">Affectueux</div><div class="result-dots">${dotsResult('',dog.affectueux)}</div></div>
+      <div class="result-trait"><div class="result-lbl">Intelligent</div><div class="result-dots">${dotsResult('',dog.intelligent)}</div></div>
+      <div class="result-trait"><div class="result-lbl">Obéissant</div><div class="result-dots">${dotsResult('',dog.obeissant)}</div></div>
+      <div class="result-trait"><div class="result-lbl">Sportif</div><div class="result-dots">${dotsResult('',dog.sportif)}</div></div>
+    </div>
+    <button class="restart-btn" onclick="goHome()">Recommencer</button>
+  `;
+}
+
+function goHome() {
+  document.getElementById('round-info').style.display='none';
+  document.getElementById('prog-wrap').style.display='none';
+  showScreen('screen-list');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+</script>
+</body>
+</html>
