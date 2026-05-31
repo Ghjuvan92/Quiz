@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Compte est Bon</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#d4601a;--orange-mid:#e8854a;--brown:#7a3b10;--r:12px;--rs:8px;
+  --ok:#3a6b2a;--ok-bg:#dff0d4;--ko:#9b2a1a;--ko-bg:#fde8e0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:.75rem .75rem 2rem;
+  background:radial-gradient(ellipse 120% 60% at 30% 20%,rgba(196,82,18,0) 0%,#7a3b10 45%,#4a2008 100%),
+             linear-gradient(160deg,#a04010 0%,#6a2e08 40%,#3a1804 100%)}
+
+.nav{width:100%;max-width:480px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.back{font-size:.8rem;color:rgba(253,246,238,.6);text-decoration:none}.back:hover{color:#fdf6ee}
+.hdr{flex:1;text-align:center}
+.hdr h1{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:400}
+.hdr h1 em{font-style:italic;color:var(--orange-mid)}
+
+.panel{width:100%;max-width:480px;display:flex;flex-direction:column;gap:.6rem}
+
+/* CIBLE */
+.cible-wrap{background:rgba(255,255,255,.97);border-radius:var(--r);
+  box-shadow:0 4px 20px rgba(42,26,14,.35);overflow:hidden;position:relative}
+.cible-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown))}
+.cible-label{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--orange);font-weight:500;text-align:center;padding:.55rem 0 .1rem}
+.cible-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:400;
+  color:#2a1a0e;text-align:center;line-height:1;padding:.1rem 0 .6rem}
+
+/* PLAQUES */
+.plaques-label{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(253,246,238,.5);font-weight:500;text-align:center;margin-bottom:.3rem}
+.plaques{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.plaque{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-family:'Playfair Display',serif;font-size:1.2rem;
+  font-weight:400;cursor:pointer;transition:all .15s;border:none;user-select:none}
+.plaque.petite{background:#fdf6ee;color:#2a1a0e;box-shadow:0 2px 8px rgba(42,26,14,.25)}
+.plaque.grande{background:#e8d5b0;color:#2a1a0e;box-shadow:0 2px 8px rgba(42,26,14,.3);font-weight:500}
+.plaque.used{opacity:.25;pointer-events:none}
+.plaque.selected{outline:3px solid var(--orange-mid);transform:scale(1.08)}
+.plaque:not(.used):hover{transform:scale(1.05)}
+
+/* OPÉRATEURS */
+.ops{display:flex;gap:6px;justify-content:center;margin-top:.1rem}
+.op-btn{width:44px;height:44px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.1);font-size:1.2rem;font-weight:500;color:#fdf6ee;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.op-btn.selected{background:var(--orange);border-color:var(--orange);color:#fff}
+.op-btn:hover:not(.selected){background:rgba(255,255,255,.2)}
+
+/* ÉTAPES */
+.etapes-wrap{background:rgba(255,255,255,.97);border-radius:var(--r);
+  box-shadow:0 4px 16px rgba(42,26,14,.25);overflow:hidden;position:relative;min-height:60px}
+.etapes-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown))}
+.etapes-inner{padding:.55rem .75rem .6rem}
+.etape-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.2rem 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:.85rem;color:#2a1a0e}
+.etape-row:last-child{border-bottom:none}
+.etape-expr{font-family:'DM Sans',sans-serif}
+.etape-res{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:400;color:var(--orange)}
+.etape-del{background:none;border:none;cursor:pointer;color:#c07050;font-size:.8rem;
+  padding:0 .3rem;line-height:1;flex-shrink:0}
+.etape-del:hover{color:var(--ko)}
+.etapes-vide{color:#a07850;font-size:.8rem;font-style:italic;text-align:center;padding:.8rem 0}
+
+/* RÉSULTAT COURANT */
+.resultat-courant{font-size:.78rem;text-align:center;color:rgba(253,246,238,.55);min-height:1.2rem}
+.resultat-courant.proche{color:#f0b060;font-weight:500}
+.resultat-courant.exact{color:#7de87d;font-weight:500}
+
+/* BOUTONS D'ACTION */
+.actions{display:flex;gap:6px}
+.btn-action{flex:1;padding:.6rem .5rem;border-radius:var(--rs);border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:.78rem;
+  font-weight:500;color:rgba(253,246,238,.8);cursor:pointer;transition:all .18s;text-align:center}
+.btn-action:hover{background:rgba(255,255,255,.2);color:#fdf6ee}
+.btn-action.primary{background:var(--orange);border-color:var(--orange);color:#fff}
+.btn-action.primary:hover{background:#bf5518}
+.btn-action:disabled{opacity:.35;cursor:default}
+
+/* SOLUTION */
+.solution-wrap{background:rgba(255,255,255,.97);border-radius:var(--r);
+  box-shadow:0 4px 16px rgba(42,26,14,.25);overflow:hidden;position:relative;display:none}
+.solution-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown))}
+.solution-wrap.on{display:block;animation:slin .3s ease}
+@keyframes slin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.solution-inner{padding:.55rem .75rem .65rem}
+.solution-title{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--orange);font-weight:500;margin-bottom:.4rem}
+.solution-line{font-size:.85rem;color:#2a1a0e;padding:.15rem 0;
+  border-bottom:1px solid rgba(0,0,0,.05)}
+.solution-line:last-child{border-bottom:none}
+.solution-ligne-res{font-family:'Playfair Display',serif;color:var(--orange);font-size:.95rem}
+.solution-score{font-size:.78rem;color:#5c3a1e;margin-top:.4rem;font-style:italic}
+
+/* TIMER */
+.timer-wrap{width:100%;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.timer-bar{height:100%;background:var(--orange-mid);border-radius:3px;
+  transition:width .1s linear;width:100%}
+.timer-bar.urgent{background:#e05050}
+.timer-label{text-align:center;font-size:.72rem;color:rgba(253,246,238,.55);margin-top:.2rem}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a class="back" href="index.html">← Accueil</a>
+  <div class="hdr"><h1>Le <em>Compte est Bon</em></h1></div>
+</div>
+
+<div class="panel">
+
+  <!-- CIBLE -->
+  <div class="cible-wrap">
+    <div class="cible-label">✦ Cible</div>
+    <div class="cible-num" id="cible">—</div>
+  </div>
+
+  <!-- TIMER -->
+  <div>
+    <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+    <div class="timer-label" id="timer-label">30</div>
+  </div>
+
+  <!-- PLAQUES de départ -->
+  <div>
+    <div class="plaques" id="plaques-orig"></div>
+  </div>
+
+  <!-- OPÉRATEURS -->
+  <div class="ops" id="ops">
+    <button class="op-btn" data-op="+">+</button>
+    <button class="op-btn" data-op="−">−</button>
+    <button class="op-btn" data-op="×">×</button>
+    <button class="op-btn" data-op="÷">÷</button>
+  </div>
+
+  <!-- RÉSULTATS INTERMÉDIAIRES (sous les signes) -->
+  <div class="plaques" id="plaques-inter" style="justify-content:center;min-height:0"></div>
+
+  <!-- RÉSULTAT COURANT -->
+  <div class="resultat-courant" id="rc"></div>
+
+  <!-- ÉTAPES -->
+  <div class="etapes-wrap">
+    <div class="etapes-inner" id="etapes">
+      <div class="etapes-vide">Sélectionne une plaque, un opérateur, puis une autre plaque</div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
+    <button class="btn-action" type="button" onclick="reset()">↺ Nouveau</button>
+    <button class="btn-action primary" type="button" onclick="demanderSolution()">Solution</button>
+  </div>
+
+  <!-- SOLUTION -->
+  <div class="solution-wrap" id="solution-wrap">
+    <div class="solution-inner" id="solution-inner"></div>
+  </div>
+
+</div>
+
+<script>
+// ── Tirage
+const GRANDES = [25,50,75,100];
+const PETITES = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
+const shuf = a => [...a].sort(()=>Math.random()-.5);
+
+let plaques = [];      // {val, id, type}
+let cible = 0;
+let disponibles = []; // ids des plaques encore utilisables
+let selection = null; // {idx, val} première plaque sélectionnée
+let opSelection = null; // opérateur sélectionné
+let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
+let valeursDispos = []; // [{id,val}] état courant
+
+const TIMER_DURATION = 30;
+let timerInterval = null;
+let timerSecondes = TIMER_DURATION;
+
+function startTimer() {
+  stopTimer();
+  timerSecondes = TIMER_DURATION;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerSecondes--;
+    updateTimerDisplay();
+    if(timerSecondes <= 0) {
+      stopTimer();
+      document.getElementById('timer-label').textContent = 'Temps écoulé !';
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  const bar = document.getElementById('timer-bar');
+  const lbl = document.getElementById('timer-label');
+  const pct = (timerSecondes / TIMER_DURATION) * 100;
+  bar.style.width = pct + '%';
+  bar.classList.toggle('urgent', timerSecondes <= 10);
+  lbl.textContent = timerSecondes + 's';
+}
+
+function tirer() {
+  const grandes = shuf(GRANDES).slice(0,2);
+  const petites = shuf(PETITES).slice(0,4);
+  plaques = [...grandes, ...petites].map((v,i) => ({val:v, id:i, type: grandes.includes(v)&&i<2?'grande':'petite'}));
+  cible = Math.floor(Math.random()*900)+100;
+  valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
+  etapes = [];
+  selection = null;
+  opSelection = null;
+  document.getElementById('cible').textContent = cible;
+  document.getElementById('solution-wrap').classList.remove('on');
+  document.getElementById('rc').textContent = '';
+  document.getElementById('rc').className = 'resultat-courant';
+  renderPlaques();
+  renderOps();
+  renderEtapes();
+  startTimer();
+}
+
+function renderPlaques() {
+  const elOrig  = document.getElementById('plaques-orig');
+  const elInter = document.getElementById('plaques-inter');
+  elOrig.innerHTML  = '';
+  elInter.innerHTML = '';
+
+  valeursDispos.forEach(v=>{
+    const orig = plaques.find(p=>p.id===v.id);
+    const btn = document.createElement('button');
+    btn.className = (orig && orig.type==='grande') ? 'plaque grande' : 'plaque petite';
+    if(selection && selection.id===v.id) btn.classList.add('selected');
+    btn.textContent = v.val;
+    btn.onclick = () => clicPlaque(v.id, v.val);
+    if(v.id >= 100) elInter.appendChild(btn);
+    else elOrig.appendChild(btn);
+  });
+}
+
+function renderOps() {
+  document.querySelectorAll('.op-btn').forEach(b=>{
+    b.classList.toggle('selected', b.dataset.op===opSelection);
+  });
+}
+
+function renderEtapes() {
+  const el = document.getElementById('etapes');
+  if(etapes.length===0){
+    el.innerHTML='';
+    return;
+  }
+  el.innerHTML = etapes.map((e,i)=>`
+    <div class="etape-row">
+      <span class="etape-expr">${e.expr}</span>
+      <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
+    </div>`).join('');
+  // Vérifier si on a atteint la cible
+  const rc = document.getElementById('rc');
+  if(valeursDispos.some(v=>v.val===cible)){
+    rc.textContent='🎉 Exact !';
+    rc.className='resultat-courant exact';
+    stopTimer();
+  } else {
+    rc.textContent='';
+    rc.className='resultat-courant';
+  }
+}
+
+function clicPlaque(id, val) {
+  if(!selection){
+    selection = {id, val};
+    renderPlaques();
+    return;
+  }
+  if(selection.id===id){
+    selection=null; renderPlaques(); return;
+  }
+  if(!opSelection) return;
+  // Appliquer opération
+  const a=selection.val, b=val;
+  let res=null, expr='';
+  if(opSelection==='+'){res=a+b;expr=`${a} + ${b}`;}
+  else if(opSelection==='−'){
+    if(a<b){alert('Résultat négatif non autorisé');return;}
+    res=a-b;expr=`${a} − ${b}`;
+  }
+  else if(opSelection==='×'){res=a*b;expr=`${a} × ${b}`;}
+  else if(opSelection==='÷'){
+    if(b===0||a%b!==0){alert('Division non entière non autorisée');return;}
+    res=a/b;expr=`${a} ÷ ${b}`;
+  }
+  if(res===0){alert('Résultat zéro non autorisé');return;}
+
+  const newId = 100+etapes.length;
+  etapes.push({expr, res, consumed:[selection.id, id], produced:{id:newId, val:res}});
+  // Mettre à jour valeursDispos
+  valeursDispos = valeursDispos.filter(v=>v.id!==selection.id&&v.id!==id);
+  valeursDispos.push({id:newId, val:res});
+  selection=null; opSelection=null;
+  renderPlaques(); renderOps(); renderEtapes();
+}
+
+function supprimerEtape(idx) {
+  // Recalculer à partir de zéro jusqu'à idx-1
+  const garder = etapes.slice(0,idx);
+  etapes = garder;
+  // Reconstruire valeursDispos
+  const consumed = new Set(garder.flatMap(e=>e.consumed));
+  const produced = new Set(garder.map(e=>e.produced.id));
+  valeursDispos = plaques.filter(p=>!consumed.has(p.id)||produced.has(p.id)).map(p=>({id:p.id,val:p.val}));
+  garder.forEach(e=>{ if(!consumed.has(e.produced.id)) valeursDispos.push({id:e.produced.id,val:e.produced.val}); });
+  // Plus simple : reconstruire proprement
+  valeursDispos = [];
+  const usedInKept = new Set(garder.flatMap(e=>e.consumed));
+  const producedInKept = garder.map(e=>e.produced);
+  plaques.forEach(p=>{ if(!usedInKept.has(p.id)) valeursDispos.push({id:p.id,val:p.val}); });
+  producedInKept.forEach(p=>{ if(!usedInKept.has(p.id)) valeursDispos.push({id:p.id,val:p.val}); });
+  selection=null; opSelection=null;
+  renderPlaques(); renderOps(); renderEtapes();
+  if(etapes.length===0){document.getElementById('rc').textContent='';document.getElementById('rc').className='resultat-courant';}
+}
+
+function effacer() {
+  if(etapes.length>0) supprimerEtape(etapes.length-1);
+  else{selection=null;opSelection=null;renderPlaques();renderOps();}
+}
+
+function reset() {
+  document.getElementById('solution-wrap').classList.remove('on');
+  tirer();
+}
+
+// ── SOLVER (RPN exhaustif)
+function demanderSolution() {
+  stopTimer();
+  document.getElementById('solution-wrap').classList.remove('on');
+  const nums = plaques.map(p=>p.val);
+  const res = solver(nums, cible);
+  const el = document.getElementById('solution-inner');
+  if(res.exact){
+    el.innerHTML=`<div class="solution-title">✓ Solution exacte</div>`+
+      res.steps.map(s=>`<div class="solution-line">${s.expr} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('');
+  } else {
+    el.innerHTML=`<div class="solution-title">Meilleur résultat trouvé : ${res.best}</div>`+
+      res.steps.map(s=>`<div class="solution-line">${s.expr} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('')+
+      `<div class="solution-score">Aucune solution exacte pour ${cible}</div>`;
+  }
+  document.getElementById('solution-wrap').classList.add('on');
+}
+
+function solver(nums, target) {
+  let bestDiff = Infinity, bestResult = {exact:false, best:null, steps:[]};
+
+  function calc(a,b,op){
+    if(op==='+') return a+b;
+    if(op==='-') return a>b?a-b:null;
+    if(op==='*') return a*b;
+    if(op==='/') return b!==0&&a%b===0?a/b:null;
+    return null;
+  }
+  const opSyms = {'+':'+','-':'−','*':'×','/':'÷'};
+
+  function search(vals, steps) {
+    // Check each current value
+    for(const {v} of vals){
+      const d=Math.abs(v-target);
+      if(d<bestDiff){bestDiff=d;bestResult={exact:d===0,best:v,steps:[...steps]};}
+    }
+    if(bestDiff===0) return;
+    if(vals.length<2) return;
+
+    for(let i=0;i<vals.length;i++){
+      for(let j=0;j<vals.length;j++){
+        if(i===j) continue;
+        const a=vals[i].v, b=vals[j].v;
+        for(const op of ['+','-','*','/']){
+          const r=calc(a,b,op);
+          if(r===null||r<=0) continue;
+          const newStep={expr:`${a} ${opSyms[op]} ${b}`, res:r};
+          const rest=vals.filter((_,k)=>k!==i&&k!==j);
+          search([...rest,{v:r}],[...steps,newStep]);
+          if(bestDiff===0) return;
+        }
+      }
+    }
+  }
+
+  search(nums.map(v=>({v})),[]);
+  return bestResult;
+}
+
+// ── Opérateurs clic
+document.querySelectorAll('.op-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    opSelection = opSelection===b.dataset.op ? null : b.dataset.op;
+    renderOps();
+  });
+});
+
+// ── Init
+tirer();
+</script>
+</body>
+</html>
