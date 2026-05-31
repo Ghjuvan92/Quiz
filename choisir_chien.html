@@ -130,7 +130,6 @@ body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;display:fle
 
 <div class="round-info" id="round-info" style="display:none">
   <span>Tour <strong id="round-num">1</strong></span>
-  <span>Duel <strong id="duel-num">1</strong> / <strong id="duel-total">—</strong></span>
   <span><strong id="survivors-count">—</strong> restants</span>
 </div>
 <div class="prog" id="prog-wrap" style="display:none"><div class="prog-fill" id="prog" style="width:0%"></div></div>
@@ -141,7 +140,7 @@ body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;display:fle
     <div class="list-title">Quel type de chien <em>cherches-tu ?</em></div>
     <div class="list-sub">Choisis une liste</div>
     <div class="list-btns">
-      <button class="list-btn" onclick="startGame('frequent')">🐕 Chiens fréquents <span>47 races</span></button>
+      <button class="list-btn" onclick="startGame('frequent')">🐕 Chiens fréquents <span>46 races</span></button>
       <button class="list-btn" onclick="startGame('rare')">🦴 Chiens rares <span>191 races</span></button>
       <button class="list-btn" onclick="startGame('all')">✦ Tous les chiens <span>237 races</span></button>
     </div>
@@ -184,6 +183,7 @@ function startGame(mode) {
   roundNum = 1; winners = [];
   buildDuels();
   showScreen('screen-duel');
+  document.getElementById('survivors-count').textContent = pool.length;
   document.getElementById('round-info').style.display='flex';
   document.getElementById('prog-wrap').style.display='block';
   showDuel();
@@ -259,6 +259,11 @@ function dotsHtml(val) {
   return h;
 }
 
+function updateSurvivors(delta) {
+  const el = document.getElementById('survivors-count');
+  el.textContent = Math.max(0, parseInt(el.textContent) + delta);
+}
+
 function pick(idx) {
   if(picked) return;
   picked = true;
@@ -269,6 +274,7 @@ function pick(idx) {
   if(names[1-idx]) names[1-idx].classList.add('loser');
   winners.push(duels[duelIdx][idx]);
   hideBtns();
+  updateSurvivors(-1);
   duelIdx++;
   updHUD();
   setTimeout(() => advanceAfterPick(), 600);
@@ -277,7 +283,6 @@ function pick(idx) {
 function pickBoth() {
   if(picked) return;
   picked = true;
-  // Ajouter les deux seulement si pas déjà dans winners
   const add = (d) => { if(!winners.find(w=>w.fichier===d.fichier)) winners.push(d); };
   add(duels[duelIdx][0]);
   add(duels[duelIdx][1]);
@@ -298,9 +303,14 @@ function pickNone() {
   picked = true;
   document.getElementById('duel-wrap').querySelectorAll('.duel-photo').forEach(p=>p.classList.add('loser'));
   hideBtns();
+  updateSurvivors(-2);
   duelIdx++;
   updHUD();
   setTimeout(() => advanceAfterPick(), 600);
+}
+
+function resetSurvivorsDisplay() {
+  document.getElementById('survivors-count').textContent = pool.length;
 }
 
 function advanceAfterPick() {
@@ -310,39 +320,39 @@ function advanceAfterPick() {
   }
   // Fin du tour
   if(winners.length === 0) {
-    // Personne éliminé — relancer le même pool
     pool = shuf(pool);
     roundNum++;
     buildDuels();
+    resetSurvivorsDisplay();
     showDuel();
   } else if(winners.length === 1) {
     showResult(winners[0]);
   } else if(winners.length >= pool.length) {
-    // Aucune élimination — si 2 restants forcer un choix, sinon relancer
     if(pool.length <= 2) {
       pool = shuf(pool.length > 0 ? pool : winners);
       roundNum++;
       buildDuels();
+      resetSurvivorsDisplay();
       showDuel();
     } else {
       pool = winners;
       roundNum++;
       buildDuels();
+      resetSurvivorsDisplay();
       showDuel();
     }
   } else {
     pool = winners;
     roundNum++;
     buildDuels();
+    resetSurvivorsDisplay();
     showDuel();
   }
 }
 
 function updHUD() {
   document.getElementById('round-num').textContent = roundNum;
-  document.getElementById('duel-num').textContent = duelIdx+1 > duels.length ? duels.length : duelIdx+1;
-  document.getElementById('duel-total').textContent = duels.length;
-  document.getElementById('survivors-count').textContent = pool.length;
+  // survivors-count updated live by updateSurvivors()
   const pct = duels.length ? duelIdx/duels.length*100 : 0;
   document.getElementById('prog').style.width = pct+'%';
 }
