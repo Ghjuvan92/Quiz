@@ -4,108 +4,145 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Compte est Bon</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--orange:#d4601a;--orange-mid:#e8854a;--brown:#7a3b10;--r:12px;--rs:8px;
-  --ok:#3a6b2a;--ok-bg:#dff0d4;--ko:#9b2a1a;--ko-bg:#fde8e0}
+:root{
+  --bg:#1a1a0e;
+  --bg2:#252510;
+  --green-dark:#2d3a1a;
+  --green-mid:#3d4f22;
+  --tile-yellow:#e8c84a;
+  --tile-beige:#d4b860;
+  --tile-grande:#c8a030;
+  --segment:#f0e060;
+  --segment-dim:#2a2808;
+  --red:#c83030;
+  --white:#f0ece0;
+  --dim:rgba(240,236,224,.4);
+  --r:6px;--rs:4px;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;
+body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   display:flex;flex-direction:column;align-items:center;padding:.75rem .75rem 2rem;
-  background:radial-gradient(ellipse 120% 60% at 30% 20%,rgba(196,82,18,0) 0%,#7a3b10 45%,#4a2008 100%),
-             linear-gradient(160deg,#a04010 0%,#6a2e08 40%,#3a1804 100%)}
+  background:var(--bg)}
 
-.nav{width:100%;max-width:480px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
-.back{font-size:.8rem;color:rgba(253,246,238,.6);text-decoration:none}.back:hover{color:#fdf6ee}
+.nav{width:100%;max-width:420px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.back{font-size:.8rem;color:var(--dim);text-decoration:none}.back:hover{color:var(--white)}
 .hdr{flex:1;text-align:center}
-.hdr h1{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:400}
-.hdr h1 em{font-style:italic;color:var(--orange-mid)}
+.hdr h1{font-family:'Share Tech Mono',monospace;font-size:1.1rem;font-weight:400;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--white)}
+.hdr h1 em{font-style:normal;color:var(--tile-yellow)}
 
-.panel{width:100%;max-width:480px;display:flex;flex-direction:column;gap:.6rem}
+.panel{width:100%;max-width:420px;display:flex;flex-direction:column;gap:.65rem}
 
-/* CIBLE */
-.cible-wrap{background:rgba(255,255,255,.97);border-radius:var(--r);
-  box-shadow:0 4px 20px rgba(42,26,14,.35);overflow:hidden;position:relative}
-.cible-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown))}
-.cible-label{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--orange);font-weight:500;text-align:center;padding:.55rem 0 .1rem}
-.cible-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:400;
-  color:#2a1a0e;text-align:center;line-height:1;padding:.1rem 0 .6rem}
+/* CIBLE — panneau d'affichage 7-segments */
+.cible-wrap{background:#0a0a04;border:2px solid #3a3a18;border-radius:var(--r);
+  padding:.5rem .5rem .4rem;text-align:center;
+  box-shadow:0 0 20px rgba(240,224,96,.08),inset 0 2px 8px rgba(0,0,0,.6)}
+.cible-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.25em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
+.cible-num{font-family:'Share Tech Mono',monospace;font-size:3.2rem;font-weight:400;
+  color:var(--segment);text-shadow:0 0 12px rgba(240,224,96,.6),0 0 30px rgba(240,224,96,.2);
+  letter-spacing:.12em;line-height:1}
 
-/* PLAQUES */
-.plaques-label{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
-  color:rgba(253,246,238,.5);font-weight:500;text-align:center;margin-bottom:.3rem}
-.plaques{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-.plaque{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;
-  justify-content:center;font-family:'Playfair Display',serif;font-size:1.2rem;
-  font-weight:400;cursor:pointer;transition:all .15s;border:none;user-select:none}
-.plaque.petite{background:#fdf6ee;color:#2a1a0e;box-shadow:0 2px 8px rgba(42,26,14,.25)}
-.plaque.grande{background:#e8d5b0;color:#2a1a0e;box-shadow:0 2px 8px rgba(42,26,14,.3);font-weight:500}
-.plaque.used{opacity:.25;pointer-events:none}
-.plaque.selected{outline:3px solid var(--orange-mid);transform:scale(1.08)}
-.plaque:not(.used):hover{transform:scale(1.05)}
+/* PLAQUES — style tuiles TV */
+.plaques{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;
+  padding:.5rem;background:var(--green-dark);border-radius:var(--r);
+  border:1px solid var(--green-mid)}
+.plaque{width:54px;height:54px;border-radius:4px;display:flex;align-items:center;
+  justify-content:center;font-family:'Share Tech Mono',monospace;font-size:1.35rem;
+  font-weight:400;cursor:pointer;transition:transform .12s,box-shadow .12s;
+  border:none;user-select:none;position:relative}
+.plaque.petite{
+  background:linear-gradient(145deg,#e8c84a,#c8a828);
+  color:#1a1400;
+  box-shadow:2px 2px 0 #8a7010,0 3px 8px rgba(0,0,0,.5)}
+.plaque.grande{
+  background:linear-gradient(145deg,#d4a030,#a87818);
+  color:#0a0800;
+  box-shadow:2px 2px 0 #705010,0 3px 8px rgba(0,0,0,.5);
+  font-size:1.1rem}
+.plaque.selected{
+  outline:none;
+  box-shadow:0 0 0 3px #f0e060,2px 2px 0 #8a7010;
+  transform:scale(1.08) translateY(-2px)}
+.plaque:not([disabled]):hover{transform:scale(1.05) translateY(-1px)}
+
+/* Plaque fantôme (utilisée) */
+.plaque-ghost{width:54px;height:54px;border-radius:4px;
+  background:rgba(255,255,255,.04);
+  border:1px dashed rgba(255,255,255,.12)}
 
 /* OPÉRATEURS */
-.ops{display:flex;gap:6px;justify-content:center;margin-top:.1rem}
-.op-btn{width:44px;height:44px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);
-  background:rgba(255,255,255,.1);font-size:1.2rem;font-weight:500;color:#fdf6ee;
-  cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
-.op-btn.selected{background:var(--orange);border-color:var(--orange);color:#fff}
-.op-btn:hover:not(.selected){background:rgba(255,255,255,.2)}
+.ops{display:flex;gap:6px;justify-content:center}
+.op-btn{width:46px;height:46px;border-radius:var(--rs);
+  border:1.5px solid rgba(240,236,224,.2);
+  background:rgba(240,236,224,.06);
+  font-family:'Share Tech Mono',monospace;font-size:1.3rem;
+  color:rgba(240,236,224,.7);cursor:pointer;transition:all .14s;
+  display:flex;align-items:center;justify-content:center}
+.op-btn.selected{background:var(--tile-yellow);border-color:var(--tile-yellow);
+  color:#1a1400;box-shadow:0 0 10px rgba(240,224,96,.4)}
+.op-btn:hover:not(.selected){background:rgba(240,236,224,.15);color:var(--white)}
 
 /* ÉTAPES */
-.etapes-wrap{background:rgba(255,255,255,.97);border-radius:var(--r);
-  box-shadow:0 4px 16px rgba(42,26,14,.25);overflow:hidden;position:relative;min-height:60px}
-.etapes-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown))}
-.etapes-inner{padding:.55rem .75rem .6rem}
+.etapes-wrap{background:#0e0e06;border:1px solid #3a3a18;border-radius:var(--r);
+  min-height:48px;overflow:hidden}
+.etapes-inner{padding:.45rem .65rem .5rem}
 .etape-row{display:flex;align-items:center;justify-content:space-between;
-  padding:.2rem 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:.85rem;color:#2a1a0e}
+  padding:.18rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+  font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--white)}
 .etape-row:last-child{border-bottom:none}
-.etape-expr{font-family:'DM Sans',sans-serif}
-.etape-res{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:400;color:var(--orange)}
-.etape-del{background:none;border:none;cursor:pointer;color:#c07050;font-size:.8rem;
-  padding:0 .3rem;line-height:1;flex-shrink:0}
-.etape-del:hover{color:var(--ko)}
-.etapes-vide{color:#a07850;font-size:.8rem;font-style:italic;text-align:center;padding:.8rem 0}
+.etape-del{background:none;border:none;cursor:pointer;
+  color:rgba(240,236,224,.3);font-size:.75rem;padding:0 .3rem;line-height:1}
+.etape-del:hover{color:var(--red)}
 
-/* RÉSULTAT COURANT */
-.resultat-courant{font-size:.78rem;text-align:center;color:rgba(253,246,238,.55);min-height:1.2rem}
-.resultat-courant.proche{color:#f0b060;font-weight:500}
-.resultat-courant.exact{color:#7de87d;font-weight:500}
+/* RÉSULTAT */
+.resultat-courant{font-size:.75rem;text-align:center;
+  font-family:'Share Tech Mono',monospace;color:var(--dim);min-height:1.1rem}
+.resultat-courant.exact{color:var(--segment);
+  text-shadow:0 0 8px rgba(240,224,96,.5);font-size:.9rem}
 
-/* BOUTONS D'ACTION */
+/* ACTIONS */
 .actions{display:flex;gap:6px}
-.btn-action{flex:1;padding:.6rem .5rem;border-radius:var(--rs);border:1.5px solid rgba(255,255,255,.2);
-  background:rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:.78rem;
-  font-weight:500;color:rgba(253,246,238,.8);cursor:pointer;transition:all .18s;text-align:center}
-.btn-action:hover{background:rgba(255,255,255,.2);color:#fdf6ee}
-.btn-action.primary{background:var(--orange);border-color:var(--orange);color:#fff}
-.btn-action.primary:hover{background:#bf5518}
-.btn-action:disabled{opacity:.35;cursor:default}
+.btn-action{flex:1;padding:.55rem .4rem;border-radius:var(--rs);
+  border:1px solid rgba(240,236,224,.2);
+  background:rgba(240,236,224,.06);
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  letter-spacing:.05em;
+  color:rgba(240,236,224,.75);cursor:pointer;transition:all .16s;text-align:center}
+.btn-action:hover{background:rgba(240,236,224,.14);color:var(--white)}
+.btn-action.primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn-action.primary:hover{background:#a82020}
 
 /* SOLUTION */
-.solution-wrap{background:rgba(255,255,255,.97);border-radius:var(--r);
-  box-shadow:0 4px 16px rgba(42,26,14,.25);overflow:hidden;position:relative;display:none}
-.solution-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--brown),var(--orange-mid),var(--brown))}
+.solution-wrap{background:#0e0e06;border:1px solid #3a3a18;
+  border-radius:var(--r);display:none;overflow:hidden}
 .solution-wrap.on{display:block;animation:slin .3s ease}
-@keyframes slin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.solution-inner{padding:.55rem .75rem .65rem}
-.solution-title{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--orange);font-weight:500;margin-bottom:.4rem}
-.solution-line{font-size:.85rem;color:#2a1a0e;padding:.15rem 0;
-  border-bottom:1px solid rgba(0,0,0,.05)}
+@keyframes slin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.solution-inner{padding:.5rem .65rem .6rem}
+.solution-title{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tile-yellow);margin-bottom:.35rem}
+.solution-line{font-family:'Share Tech Mono',monospace;font-size:.82rem;
+  color:var(--white);padding:.14rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .solution-line:last-child{border-bottom:none}
-.solution-ligne-res{font-family:'Playfair Display',serif;color:var(--orange);font-size:.95rem}
-.solution-score{font-size:.78rem;color:#5c3a1e;margin-top:.4rem;font-style:italic}
+.solution-ligne-res{color:var(--segment)}
+.solution-score{font-size:.72rem;color:var(--dim);margin-top:.35rem;
+  font-family:'Share Tech Mono',monospace}
 
 /* TIMER */
-.timer-wrap{width:100%;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
-.timer-bar{height:100%;background:var(--orange-mid);border-radius:3px;
-  transition:width .1s linear;width:100%}
-.timer-bar.urgent{background:#e05050}
-.timer-label{text-align:center;font-size:.72rem;color:rgba(253,246,238,.55);margin-top:.2rem}
+.timer-wrap{width:100%;height:5px;background:#1a1a08;border-radius:2px;overflow:hidden;
+  border:1px solid #3a3a18}
+.timer-bar{height:100%;background:var(--segment);border-radius:2px;
+  transition:width .9s linear;width:100%;
+  box-shadow:0 0 6px rgba(240,224,96,.4)}
+.timer-bar.urgent{background:var(--red);box-shadow:0 0 8px rgba(200,48,48,.5)}
+.timer-label{font-family:'Share Tech Mono',monospace;text-align:center;
+  font-size:.68rem;color:var(--dim);margin-top:.15rem;letter-spacing:.1em}
+
+/* intermédiaires */
+#plaques-inter{background:transparent;border:none;padding:.25rem 0;min-height:0}
 </style>
 </head>
 <body>
@@ -189,6 +226,50 @@ let timerSecondes = TIMER_DURATION;
 const AC = new (window.AudioContext || window.webkitAudioContext)();
 
 function playTick() {} // inutilisé
+
+function playTuile() {
+  const t = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(300, t);
+  o.frequency.exponentialRampToValueAtTime(180, t + 0.06);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.15, t + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  o.start(t); o.stop(t + 0.12);
+}
+
+function playOp() {
+  // Clic léger de touche
+  const t = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(520, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.07, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  o.start(t); o.stop(t + 0.07);
+}
+
+function playExact() {
+  // Deux notes courtes montantes, discrètes
+  const t = AC.currentTime;
+  [[0, 660], [0.12, 880]].forEach(([delay, freq]) => {
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t + delay);
+    g.gain.setValueAtTime(0, t + delay);
+    g.gain.linearRampToValueAtTime(0.12, t + delay + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.18);
+    o.start(t + delay); o.stop(t + delay + 0.2);
+  });
+}
 
 function playBuzzer() {
   // Simple cloche douce — "ding" — comme à l'émission
@@ -334,8 +415,9 @@ function renderEtapes() {
   // Vérifier si on a atteint la cible
   const rc = document.getElementById('rc');
   if(valeursDispos.some(v=>v.val===cible)){
-    rc.textContent='🎉 Exact !';
+    rc.textContent='EXACT !';
     rc.className='resultat-courant exact';
+    playExact();
     stopTimer();
   } else {
     rc.textContent='';
@@ -346,6 +428,7 @@ function renderEtapes() {
 function clicPlaque(id, val) {
   if(!selection){
     selection = {id, val};
+    playTuile();
     renderPlaques();
     return;
   }
@@ -353,6 +436,7 @@ function clicPlaque(id, val) {
     selection=null; renderPlaques(); return;
   }
   if(!opSelection) return;
+  playTuile();
   // Appliquer opération
   const a=selection.val, b=val;
   let res=null, expr='';
@@ -470,6 +554,7 @@ function solver(nums, target) {
 document.querySelectorAll('.op-btn').forEach(b=>{
   b.addEventListener('click',()=>{
     opSelection = opSelection===b.dataset.op ? null : b.dataset.op;
+    if(opSelection) playOp();
     renderOps();
   });
 });
