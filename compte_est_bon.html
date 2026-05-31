@@ -102,6 +102,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   font-family:'Share Tech Mono',monospace;color:var(--dim);min-height:1.1rem}
 .resultat-courant.exact{color:var(--segment);
   text-shadow:0 0 8px rgba(240,224,96,.5);font-size:.9rem}
+.resultat-courant.err{color:var(--red);font-size:.8rem}
 
 /* ACTIONS */
 .actions{display:flex;gap:6px}
@@ -226,6 +227,16 @@ let timerSecondes = TIMER_DURATION;
 const AC = new (window.AudioContext || window.webkitAudioContext)();
 
 function playTick() {} // inutilisé
+
+function playErr() {
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine'; o.frequency.setValueAtTime(200, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.1, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+  o.start(t); o.stop(t + 0.2);
+}
 
 function playTuile() {
   const t = AC.currentTime;
@@ -425,6 +436,18 @@ function renderEtapes() {
   }
 }
 
+function showMsg(txt) {
+  const rc = document.getElementById('rc');
+  rc.textContent = txt;
+  rc.className = 'resultat-courant err';
+  playErr();
+  clearTimeout(showMsg._t);
+  showMsg._t = setTimeout(() => {
+    rc.textContent = '';
+    rc.className = 'resultat-courant';
+  }, 2000);
+}
+
 function clicPlaque(id, val) {
   if(!selection){
     selection = {id, val};
@@ -442,15 +465,15 @@ function clicPlaque(id, val) {
   let res=null, expr='';
   if(opSelection==='+'){res=a+b;expr=`${a} + ${b}`;}
   else if(opSelection==='−'){
-    if(a<b){alert('Résultat négatif non autorisé');return;}
+    if(a<b){showMsg('RESULTAT NEGATIF');return;}
     res=a-b;expr=`${a} − ${b}`;
   }
   else if(opSelection==='×'){res=a*b;expr=`${a} × ${b}`;}
   else if(opSelection==='÷'){
-    if(b===0||a%b!==0){alert('Division non entière non autorisée');return;}
+    if(b===0||a%b!==0){showMsg('DIVISION NON ENTIERE');return;}
     res=a/b;expr=`${a} ÷ ${b}`;
   }
-  if(res===0){alert('Résultat zéro non autorisé');return;}
+  if(res===0){showMsg('RESULTAT NUL');return;}
 
   const newId = 100+etapes.length;
   etapes.push({expr, res, consumed:[selection.id, id], produced:{id:newId, val:res}});

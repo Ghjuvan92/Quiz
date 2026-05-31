@@ -9,7 +9,7 @@
 :root{
   --bg:#1a1a0e;--green-dark:#2d3a1a;--green-mid:#3d4f22;
   --yellow:#e8c84a;--red:#c83030;--white:#f0ece0;--dim:rgba(240,236,224,.4);
-  --r:6px;--CELL:64px;
+  --r:6px;--CELL:72px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
@@ -40,7 +40,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .cell{
   width:var(--CELL);height:var(--CELL);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-family:'Share Tech Mono',monospace;font-size:1.9rem;
+  font-family:'Share Tech Mono',monospace;font-size:2.1rem;
   cursor:pointer;transition:background .1s;
   position:relative;
   background:rgba(240,236,224,.05);
@@ -63,8 +63,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 
 /* Label cage */
 .cage-label{
-  position:absolute;top:3px;left:4px;
-  font-family:'Share Tech Mono',monospace;font-size:.7rem;
+  position:absolute;top:3px;left:5px;
+  font-family:'Share Tech Mono',monospace;font-size:.82rem;
   color:var(--yellow);line-height:1;letter-spacing:0;
   pointer-events:none;
 }
