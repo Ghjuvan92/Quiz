@@ -143,7 +143,8 @@ body{font-family:'DM Sans',sans-serif;color:#fdf6ee;min-height:100vh;display:fle
     <div class="list-btns">
       <button class="list-btn" onclick="startGame('frequent')">🐕 Chiens fréquents <span>47 races</span></button>
       <button class="list-btn" onclick="startGame('rare')">🦴 Chiens rares <span>191 races</span></button>
-      <button class="list-btn" onclick="startGame('all')">✦ Tous les chiens <span>238 races</span></button>
+      <button class="list-btn" onclick="startGame('all')">✦ Tous les chiens <span>237 races</span></button>
+      <button class="list-btn" onclick="startGame('test')">🧪 Test rapide <span>10 chiens</span></button>
     </div>
   </div>
 </div>
@@ -176,6 +177,7 @@ let picked = false;
 function getList(mode) {
   if(mode==='frequent') return DOGS.filter(d=>['Très fréquent','Fréquent','Moyennement fréquent'].includes(d.rarete));
   if(mode==='rare')     return DOGS.filter(d=>['Rare','Très rare'].includes(d.rarete));
+  if(mode==='test')     return shuf(DOGS).slice(0, 10);
   return DOGS;
 }
 
@@ -191,9 +193,14 @@ function startGame(mode) {
 
 function buildDuels() {
   duels = [];
-  const p = [...pool];
-  // si impair, réutiliser le premier
-  if(p.length % 2 === 1) p.push(p[0]);
+  // Dédoublonner par fichier pour éviter deux fois le même chien
+  const seen = new Set();
+  const p = shuf(pool.filter(d => {
+    if(seen.has(d.fichier)) return false;
+    seen.add(d.fichier); return true;
+  }));
+  // Si impair, réutiliser le dernier (pas le premier, pour varier)
+  if(p.length % 2 === 1) p.push(p[p.length - 2] || p[0]);
   for(let i=0;i<p.length;i+=2) duels.push([p[i],p[i+1]]);
   duelIdx = 0;
   winners = [];
@@ -272,8 +279,10 @@ function pick(idx) {
 function pickBoth() {
   if(picked) return;
   picked = true;
-  winners.push(duels[duelIdx][0]);
-  winners.push(duels[duelIdx][1]);
+  // Ajouter les deux seulement si pas déjà dans winners
+  const add = (d) => { if(!winners.find(w=>w.fichier===d.fichier)) winners.push(d); };
+  add(duels[duelIdx][0]);
+  add(duels[duelIdx][1]);
   document.getElementById('duel-wrap').querySelectorAll('.duel-photo').forEach(p=>p.classList.add('winner'));
   hideBtns();
   duelIdx++;
@@ -299,23 +308,35 @@ function pickNone() {
 function advanceAfterPick() {
   if(duelIdx < duels.length) {
     showDuel();
-  } else {
-    // end of round
-    if(winners.length === 0) {
-      // nobody survived — restart same pool reshuffled
-      pool = shuf(pool);
+    return;
+  }
+  // Fin du tour
+  if(winners.length === 0) {
+    // Personne éliminé — relancer le même pool
+    pool = shuf(pool);
+    roundNum++;
+    buildDuels();
+    showDuel();
+  } else if(winners.length === 1) {
+    showResult(winners[0]);
+  } else if(winners.length >= pool.length) {
+    // Aucune élimination — si 2 restants forcer un choix, sinon relancer
+    if(pool.length <= 2) {
+      pool = shuf(pool.length > 0 ? pool : winners);
       roundNum++;
       buildDuels();
       showDuel();
-    } else if(winners.length === 1) {
-      showResult(winners[0]);
     } else {
-      // next round
       pool = winners;
       roundNum++;
       buildDuels();
       showDuel();
     }
+  } else {
+    pool = winners;
+    roundNum++;
+    buildDuels();
+    showDuel();
   }
 }
 
