@@ -544,8 +544,9 @@ function solver(nums, target) {
   }
   const opSyms = {'+':'+','-':'−','*':'×','/':'÷'};
 
+  let uidCounter = 0;
+
   function search(vals, steps) {
-    // Check each current value
     for(const {v} of vals){
       const d=Math.abs(v-target);
       if(d<bestDiff){bestDiff=d;bestResult={exact:d===0,best:v,steps:[...steps]};}
@@ -562,14 +563,14 @@ function solver(nums, target) {
           if(r===null||r<=0) continue;
           const newStep={expr:`${a} ${opSyms[op]} ${b}`, res:r};
           const rest=vals.filter((_,k)=>k!==i&&k!==j);
-          search([...rest,{v:r}],[...steps,newStep]);
+          search([...rest,{v:r,uid:++uidCounter}],[...steps,newStep]);
           if(bestDiff===0) return;
         }
       }
     }
   }
 
-  search(nums.map(v=>({v})),[]);
+  search(nums.map((v,i)=>({v,uid:i})),[]);
   return bestResult;
 }
 
