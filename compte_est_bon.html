@@ -342,11 +342,13 @@ let rouleauxDebloqués = false;
 document.addEventListener('click', function debloquerRouleaux() {
   if(rouleauxDebloqués) return;
   rouleauxDebloqués = true;
+  // Débloquer silencieusement SANS émettre de son
   sndRouleaux.forEach(a => {
-    a.volume = 0;
+    a.muted = true;
     a.play().then(() => {
       a.pause();
       a.currentTime = 0;
+      a.muted = false;
       a.volume = 0.9;
     }).catch(()=>{});
   });
@@ -542,8 +544,8 @@ function revelerPlaques(plaquesArr, onDone) {
       btn.onclick = () => clicPlaque(p.id, p.val);
       if(ghost) ghost.replaceWith(btn);
       playTuile();
-      if(idx === ordre.length - 1) setTimeout(onDone, 300);
-    }, idx * 220);
+      if(idx === ordre.length - 1) setTimeout(onDone, 600);
+    }, idx * 550);
   });
 }
 
