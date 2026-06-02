@@ -103,8 +103,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .plaque.grande{background:#161616;color:#e8e8e8;border-color:#3a3a3a;}
 .plaque[data-len="2"]{font-size:1.55rem;letter-spacing:0px;}
 .plaque[data-len="3"]{font-size:1.1rem;letter-spacing:0px;padding-bottom:2px;}
-.plaque.selected{outline:3px solid #e8c84a;transform:translateY(-4px);
-  box-shadow:0 7px 0 #000000,0 7px 10px rgba(0,0,0,.6);}
+.plaque.selected{
+  background:#e8c84a !important;
+  color:#1a1400 !important;
+  transform:translateY(-5px);
+  box-shadow:0 9px 0 #8a7010,0 9px 14px rgba(0,0,0,.7);
+  border-color:#c8a820;
+}
 .plaque.used-in-step{opacity:.15;box-shadow:none;transform:translateY(2px);pointer-events:none;}
 .plaque:not([disabled]):hover{transform:translateY(-2px);
   box-shadow:0 5px 0 #000000,0 5px 8px rgba(0,0,0,.5);}
@@ -724,14 +729,13 @@ function solver(nums, target) {
   function search(vals, steps) {
     for(const {v} of vals){
       const d=Math.abs(v-target);
-      if(d<bestDiff){
+      const usefulSteps = filterUsefulSteps(steps, v);
+      if(d<bestDiff || (d===bestDiff && usefulSteps.length < bestResult.steps.length)){
         bestDiff=d;
-        // Filtrer les steps : ne garder que ceux dont le résultat est utilisé
-        const usefulSteps = filterUsefulSteps(steps, v);
         bestResult={exact:d===0, best:v, steps:usefulSteps};
       }
     }
-    if(bestDiff===0) return;
+    if(bestDiff===0 && bestResult.steps.length<=3) return;
     if(vals.length<2) return;
 
     for(let i=0;i<vals.length;i++){
