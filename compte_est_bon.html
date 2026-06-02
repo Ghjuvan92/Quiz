@@ -71,29 +71,46 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 /* Plaque fantôme (utilisée) */
 .plaque-ghost{width:54px;height:54px;border-radius:4px;
   background:rgba(255,255,255,.04);
-  border:1px dashed rgba(255,255,255,.12)}
+  border:2px solid rgba(232,200,74,.0)}
+/* Plaque utilisée dans étapes : encadrée */
+.plaque.used-in-step{
+  outline:2.5px solid var(--tile-yellow);
+  opacity:.55}
 
 /* OPÉRATEURS */
 .ops{display:flex;gap:6px;justify-content:center}
-.op-btn{width:46px;height:46px;border-radius:var(--rs);
-  border:1.5px solid rgba(240,236,224,.2);
-  background:rgba(240,236,224,.06);
-  font-family:'Share Tech Mono',monospace;font-size:1.3rem;
-  color:rgba(240,236,224,.7);cursor:pointer;transition:all .14s;
-  display:flex;align-items:center;justify-content:center}
-.op-btn.selected{background:var(--tile-yellow);border-color:var(--tile-yellow);
-  color:#1a1400;box-shadow:0 0 10px rgba(240,224,96,.4)}
-.op-btn:hover:not(.selected){background:rgba(240,236,224,.15);color:var(--white)}
+.op-btn{width:52px;height:52px;border-radius:8px;
+  border:2px solid rgba(240,236,224,.25);
+  background:linear-gradient(145deg,#2a2a18,#1a1a0e);
+  font-family:'Share Tech Mono',monospace;font-size:1.5rem;
+  color:rgba(240,236,224,.75);cursor:pointer;transition:all .14s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}
+.op-btn.selected{
+  background:linear-gradient(145deg,var(--tile-yellow),#c8a020);
+  border-color:var(--tile-yellow);
+  color:#1a1400;
+  box-shadow:2px 2px 0 #706010,0 0 12px rgba(240,224,96,.35),inset 0 1px 0 rgba(255,255,255,.2)}
+.op-btn:hover:not(.selected){background:linear-gradient(145deg,#3a3a22,#252512);color:var(--white)}
 
 /* ÉTAPES */
 .etapes-wrap{background:#0e0e06;border:1px solid #3a3a18;border-radius:var(--r);
   min-height:48px;overflow:hidden}
 .etapes-inner{padding:.45rem .65rem .5rem}
+.num-orig{
+  display:inline-block;
+  background:linear-gradient(145deg,#e8c84a,#c8a828);
+  color:#1a1400;
+  border-radius:4px;
+  padding:0 5px;
+  font-weight:400;
+  box-shadow:1px 1px 0 #8a7010;
+  line-height:1.4;
+}
 .etape-row{display:flex;align-items:center;justify-content:space-between;
   padding:.18rem 0;border-bottom:1px solid rgba(255,255,255,.05);
   font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--white)}
-.etape-row:last-child{border-bottom:none}
-.etape-del{background:none;border:none;cursor:pointer;
+.etape-row:last-child{border-bottom:none}.etape-del{background:none;border:none;cursor:pointer;
   color:rgba(240,236,224,.3);font-size:.75rem;padding:0 .3rem;line-height:1}
 .etape-del:hover{color:var(--red)}
 
@@ -128,7 +145,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .solution-line{font-family:'Share Tech Mono',monospace;font-size:.82rem;
   color:var(--white);padding:.14rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .solution-line:last-child{border-bottom:none}
-.solution-ligne-res{color:var(--segment)}
+.solution-ligne-res{color:var(--white)}
 .solution-score{font-size:.72rem;color:var(--dim);margin-top:.35rem;
   font-family:'Share Tech Mono',monospace}
 
@@ -384,13 +401,15 @@ function renderPlaques() {
     if(!btn) return;
     const available = dispos.has(p.id);
     btn.disabled = !available;
-    btn.style.opacity = available ? '1' : '0.2';
+    btn.style.opacity = available ? '1' : '0.55';
     btn.style.pointerEvents = available ? '' : 'none';
     btn.style.background = available
-      ? (p.type==='grande' ? '#e8d5b0' : '#fdf6ee')
-      : 'rgba(255,255,255,.12)';
-    btn.style.color = available ? '#2a1a0e' : 'rgba(253,246,238,.3)';
+      ? (p.type==='grande' ? '' : '')
+      : '';
+    btn.style.color = available ? '' : 'rgba(253,246,238,.3)';
     btn.style.boxShadow = available ? '' : 'none';
+    if(!available) btn.classList.add('used-in-step');
+    else btn.classList.remove('used-in-step');
     if(selection && selection.id===p.id) btn.classList.add('selected');
     else btn.classList.remove('selected');
   });
@@ -420,7 +439,7 @@ function renderEtapes() {
   }
   el.innerHTML = etapes.map((e,i)=>`
     <div class="etape-row">
-      <span class="etape-expr">${e.expr}</span>
+      <span class="etape-expr" style="font-size:.82rem">${e.expr} <span style="margin-left:.3rem">= ${e.res}</span></span>
       <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
     </div>`).join('');
   // Vérifier si on a atteint la cible
@@ -463,15 +482,18 @@ function clicPlaque(id, val) {
   // Appliquer opération
   const a=selection.val, b=val;
   let res=null, expr='';
-  if(opSelection==='+'){res=a+b;expr=`${a} + ${b}`;}
+  // Tag les valeurs originales (id<100)
+  const tagA = selection.id<100 ? `<span class="num-orig">${a}</span>` : `${a}`;
+  const tagB = id<100 ? `<span class="num-orig">${b}</span>` : `${b}`;
+  if(opSelection==='+'){res=a+b;expr=`${tagA} + ${tagB}`;}
   else if(opSelection==='−'){
     if(a<b){showMsg('RESULTAT NEGATIF');return;}
-    res=a-b;expr=`${a} − ${b}`;
+    res=a-b;expr=`${tagA} − ${tagB}`;
   }
-  else if(opSelection==='×'){res=a*b;expr=`${a} × ${b}`;}
+  else if(opSelection==='×'){res=a*b;expr=`${tagA} × ${tagB}`;}
   else if(opSelection==='÷'){
     if(b===0||a%b!==0){showMsg('DIVISION NON ENTIERE');return;}
-    res=a/b;expr=`${a} ÷ ${b}`;
+    res=a/b;expr=`${tagA} ÷ ${tagB}`;
   }
   if(res===0){showMsg('RESULTAT NUL');return;}
 
@@ -515,6 +537,17 @@ function reset() {
 }
 
 // ── SOLVER (RPN exhaustif)
+// Tag les valeurs de la solution qui sont des plaques originales
+function tagSolExpr(expr){
+  const origVals = plaques.map(p=>p.val);
+  return expr.replace(/\b(\d+)\b/g, (m,n)=>{
+    const v=parseInt(n);
+    const idx=origVals.indexOf(v);
+    if(idx>=0){ origVals.splice(idx,1); return `<span class="num-orig">${v}</span>`; }
+    return m;
+  });
+}
+
 function demanderSolution() {
   stopTimer();
   document.getElementById('solution-wrap').classList.remove('on');
@@ -523,13 +556,33 @@ function demanderSolution() {
   const el = document.getElementById('solution-inner');
   if(res.exact){
     el.innerHTML=`<div class="solution-title">✓ Solution exacte</div>`+
-      res.steps.map(s=>`<div class="solution-line">${s.expr} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('');
+      res.steps.map(s=>`<div class="solution-line">${tagSolExpr(s.expr)} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('');
   } else {
     el.innerHTML=`<div class="solution-title">Meilleur résultat trouvé : ${res.best}</div>`+
-      res.steps.map(s=>`<div class="solution-line">${s.expr} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('')+
+      res.steps.map(s=>`<div class="solution-line">${tagSolExpr(s.expr)} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('')+
       `<div class="solution-score">Aucune solution exacte pour ${cible}</div>`;
   }
   document.getElementById('solution-wrap').classList.add('on');
+}
+
+// Filtre les étapes pour ne garder que celles qui contribuent au résultat final
+function filterUsefulSteps(steps, finalVal) {
+  if(steps.length===0) return [];
+  // On part du résultat final et on remonte les dépendances
+  const needed = new Set([finalVal]);
+  const useful = [];
+  // Parcourir les steps en sens inverse
+  for(let i=steps.length-1;i>=0;i--){
+    const s=steps[i];
+    if(needed.has(s.res)){
+      useful.unshift(s);
+      needed.delete(s.res);
+      // Extraire les opérandes (nombres dans l'expression)
+      const nums = s.expr.match(/\d+/g);
+      if(nums) nums.forEach(n=>needed.add(parseInt(n)));
+    }
+  }
+  return useful;
 }
 
 function solver(nums, target) {
@@ -544,12 +597,15 @@ function solver(nums, target) {
   }
   const opSyms = {'+':'+','-':'−','*':'×','/':'÷'};
 
-  let uidCounter = 0;
-
   function search(vals, steps) {
     for(const {v} of vals){
       const d=Math.abs(v-target);
-      if(d<bestDiff){bestDiff=d;bestResult={exact:d===0,best:v,steps:[...steps]};}
+      if(d<bestDiff){
+        bestDiff=d;
+        // Filtrer les steps : ne garder que ceux dont le résultat est utilisé
+        const usefulSteps = filterUsefulSteps(steps, v);
+        bestResult={exact:d===0, best:v, steps:usefulSteps};
+      }
     }
     if(bestDiff===0) return;
     if(vals.length<2) return;
@@ -563,14 +619,19 @@ function solver(nums, target) {
           if(r===null||r<=0) continue;
           const newStep={expr:`${a} ${opSyms[op]} ${b}`, res:r};
           const rest=vals.filter((_,k)=>k!==i&&k!==j);
-          search([...rest,{v:r,uid:++uidCounter}],[...steps,newStep]);
+          // Passer uniquement les steps courants + ce nouveau
+          search([...rest,{v:r}],[...steps,newStep]);
           if(bestDiff===0) return;
         }
       }
     }
   }
 
-  search(nums.map((v,i)=>({v,uid:i})),[]);
+  // Chercher la solution avec le moins d'étapes possible en priorité
+  // On essaie d'abord avec peu de nombres (sous-ensembles)
+  const n = nums.length;
+  // Essai avec tous les nombres d'abord
+  search(nums.map(v=>({v})),[]);
   return bestResult;
 }
 
