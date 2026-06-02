@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Compte est Bon</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&family=Caveat:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&family=Caveat:wght@500&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#1a1a0e;
@@ -43,49 +43,75 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
 .cible-num{display:flex;justify-content:center;align-items:center;gap:6px;padding:.3rem 0}
 .rouleau{
-  width:56px;height:76px;
-  background:#000;
-  border:2px solid #333;border-radius:4px;
+  width:58px;height:80px;
+  background:linear-gradient(180deg,#3a2e1e 0%,#2a1e0e 48%,#1a1208 50%,#2a1e0e 100%);
+  border:2px solid #5a4020;
+  border-radius:6px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Share Tech Mono',monospace;font-size:3.2rem;font-weight:700;
-  color:#ffffff;
-  box-shadow:inset 0 0 8px rgba(0,0,0,.9);
+  font-family:'Chakra Petch',monospace;font-size:3rem;font-weight:700;
+  color:#e8c878;
+  letter-spacing:-.02em;
+  box-shadow:inset 0 1px 3px rgba(255,255,255,.1),
+             inset 0 -2px 4px rgba(0,0,0,.6),
+             0 4px 8px rgba(0,0,0,.6);
   position:relative;overflow:hidden;
 }
-.rouleau::before,.rouleau::after{
-  content:'';position:absolute;left:0;right:0;height:1px;
-  background:rgba(255,255,255,.06);
+/* Ligne centrale split-flap — trait noir + reflet blanc */
+.rouleau::after{
+  content:'';position:absolute;
+  left:0;right:0;top:50%;
+  width:100%;height:1px;
+  background:rgba(0,0,0,.7);
+  border-bottom:1px solid rgba(255,255,255,.15);
+  z-index:2;
 }
-.rouleau::before{top:33%}.rouleau::after{bottom:33%}
+/* Reflet haut */
+.rouleau::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:45%;
+  background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);
+  z-index:1;pointer-events:none;
+}
 
 /* PLAQUES — style tuiles TV */
-.plaques{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;
-  padding:.5rem;background:var(--green-dark);border-radius:var(--r);
-  border:1px solid var(--green-mid)}
-.plaque{width:54px;height:54px;border-radius:4px;display:flex;align-items:center;
-  justify-content:center;font-family:'Share Tech Mono',monospace;font-size:1.35rem;
-  font-weight:400;cursor:pointer;transition:transform .12s,box-shadow .12s;
-  border:none;user-select:none;position:relative}
-.plaque.petite{
-  background:#000000;
-  color:#ffffff;
-  border:2px solid #444;border-radius:4px;
-  box-shadow:0 3px 0 #000,0 3px 8px rgba(0,0,0,.6)}
-.plaque.grande{
-  background:#000000;
-  color:#ffffff;
-  border:2px solid #666;border-radius:4px;
-  font-size:1.1rem;
-  box-shadow:0 3px 0 #000,0 3px 8px rgba(0,0,0,.6)}
-.plaque.selected{
-  outline:3px solid #ffffff;
-  transform:scale(1.08) translateY(-2px)}
-.plaque:not([disabled]):hover{transform:scale(1.05) translateY(-1px)}
+.plaques{
+  display:flex;gap:5px;justify-content:center;align-items:flex-end;
+  flex-wrap:nowrap;
+  padding:8px 14px 0 14px;
+  background:
+    linear-gradient(180deg,#8b5e2a 0%,#a06830 30%,#7a4e20 60%,#5c3a18 100%);
+  border-top:2px solid #c4883a;
+  border-left:2px solid #5c3a18;
+  border-right:2px solid #5c3a18;
+  border-bottom:6px solid #3a2008;
+  border-radius:3px;
+  box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,200,80,.2);}
+.plaque{
+  width:62px;height:46px;
+  border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Impact','Arial Black',sans-serif;
+  font-size:1.85rem;font-weight:900;letter-spacing:0px;
+  background:#161616;color:#e8e8e8;
+  border:1px solid #000;
+  box-shadow:0 3px 0 #000000,0 3px 5px rgba(0,0,0,.6);
+  padding-bottom:3px;
+  cursor:pointer;transition:transform .1s ease,box-shadow .1s ease;
+  user-select:none;position:relative;flex-shrink:0;}
+.plaque.petite{background:#161616;color:#e8e8e8;}
+.plaque.grande{background:#161616;color:#e8e8e8;border-color:#3a3a3a;}
+.plaque[data-len="2"]{font-size:1.55rem;letter-spacing:0px;}
+.plaque[data-len="3"]{font-size:1.1rem;letter-spacing:0px;padding-bottom:2px;}
+.plaque.selected{outline:3px solid #e8c84a;transform:translateY(-4px);
+  box-shadow:0 7px 0 #000000,0 7px 10px rgba(0,0,0,.6);}
+.plaque.used-in-step{opacity:.15;box-shadow:none;transform:translateY(2px);pointer-events:none;}
+.plaque:not([disabled]):hover{transform:translateY(-2px);
+  box-shadow:0 5px 0 #000000,0 5px 8px rgba(0,0,0,.5);}
 
 /* Plaque fantôme (utilisée) */
-.plaque-ghost{width:54px;height:54px;border-radius:4px;
-  background:rgba(255,255,255,.04);
-  border:2px solid rgba(232,200,74,.0)}
+.plaque-ghost{width:62px;height:46px;border-radius:3px;
+  background:rgba(0,0,0,.2);
+  border:1px dashed rgba(255,255,255,.1)}
 /* Plaque utilisée dans étapes : encadrée */
 .plaque.used-in-step{
   outline:2.5px solid var(--tile-yellow);
@@ -186,6 +212,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 
 /* intermédiaires */
 #plaques-inter{background:transparent;border:none;padding:.25rem 0;min-height:0}
+.plaque.inter{
+  outline:2.5px solid #d8d0c0;
+  box-shadow:0 3px 0 #000000,0 0 6px rgba(216,208,192,.25);
+}
 </style>
 </head>
 <body>
@@ -444,9 +474,10 @@ function renderPlaques() {
   // Plaques intermédiaires (résultats calculés)
   valeursDispos.filter(v=>v.id>=100).forEach(v=>{
     const btn = document.createElement('button');
-    btn.className = 'plaque petite';
+    btn.className = 'plaque petite inter';
     if(selection && selection.id===v.id) btn.classList.add('selected');
     btn.textContent = v.val;
+    btn.dataset.len = String(v.val).length;
     btn.onclick = () => clicPlaque(v.id, v.val);
     elInter.appendChild(btn);
   });
@@ -644,6 +675,12 @@ function solver(nums, target) {
         for(const op of ['+','-','*','/']){
           const r=calc(a,b,op);
           if(r===null||r<=0) continue;
+          // Ignorer les opérations triviales
+          if(op==='*'&&(b===1||a===1)) continue;
+          if(op==='/'&&b===1) continue;
+          if(op==='+'&&(a===0||b===0)) continue;
+          if(op==='-'&&b===0) continue;
+          if(r===a||r===b) continue; // résultat identique à un des opérandes
           const newStep={expr:`${a} ${opSyms[op]} ${b}`, res:r};
           const rest=vals.filter((_,k)=>k!==i&&k!==j);
           // Passer uniquement les steps courants + ce nouveau
