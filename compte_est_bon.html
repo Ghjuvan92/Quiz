@@ -102,8 +102,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   user-select:none;position:relative;flex-shrink:0;}
 .plaque.petite{background:#161616;color:#e8e8e8;}
 .plaque.grande{background:#161616;color:#e8e8e8;border-color:#3a3a3a;}
-.plaque[data-len="2"]{font-size:1.55rem;letter-spacing:0px;}
-.plaque[data-len="3"]{font-size:1.1rem;letter-spacing:0px;padding-bottom:2px;}
+.plaque[data-len="2"]{letter-spacing:0px;}
+.plaque[data-len="3"]{letter-spacing:0px;padding-bottom:2px;}
 .plaque.selected{
   background:#e8c84a !important;
   color:#1a1400 !important;
@@ -276,6 +276,11 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
     <button class="btn-action" type="button" onclick="reset()">↺ Nouveau</button>
     <button class="btn-action primary" type="button" onclick="demanderSolution()">Solution</button>
   </div>
+  <div style="text-align:center;margin-top:-.1rem">
+    <button id="mute-btn" onclick="toggleMute()" style="background:none;border:none;
+      font-size:1.1rem;cursor:pointer;opacity:.4;padding:.2rem .6rem;transition:opacity .15s"
+      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='.4'">🔊</button>
+  </div>
 
   <!-- SOLUTION -->
   <div class="solution-wrap" id="solution-wrap">
@@ -445,6 +450,15 @@ function startMusique() {
   bgMusic.play().catch(()=>{});
 }
 
+let muted = false;
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+  if(muted) stopMusique();
+  sndRouleaux.forEach(a => a.volume = muted ? 0 : 0.9);
+  sndMusiques.forEach(a => a.volume = muted ? 0 : 0.55);
+  if(bgMusic) bgMusic.volume = muted ? 0 : 0.55;
+}
 function stopMusique() {
   if(bgMusic) {
     bgMusic.pause();
@@ -495,13 +509,42 @@ function tirer() {
   document.getElementById('solution-wrap').classList.remove('on');
   document.getElementById('rc').textContent = '';
   document.getElementById('rc').className = 'resultat-courant';
-  document.getElementById('plaques-orig').innerHTML = '';
   document.getElementById('plaques-inter').innerHTML = '';
-  renderPlaques();
   renderOps();
   renderEtapes();
-  // Animation roulette puis démarrage du chrono
-  animerCible(String(cible).padStart(3,'0').split(''), () => startTimer());
+  // Tuiles une par une, puis rouleaux
+  revelerPlaques(plaques, () => {
+    animerCible(String(cible).padStart(3,'0').split(''), () => startTimer());
+  });
+}
+
+function revelerPlaques(plaquesArr, onDone) {
+  const el = document.getElementById('plaques-orig');
+  el.innerHTML = '';
+  plaquesArr.forEach(p => {
+    const g = document.createElement('div');
+    g.className = 'plaque-ghost'; g.id = 'ghost-' + p.id;
+    el.appendChild(g);
+  });
+  const ordre = [...plaquesArr].sort((a,b) => {
+    if(a.type==='grande' && b.type!=='grande') return -1;
+    if(a.type!=='grande' && b.type==='grande') return 1;
+    return 0;
+  });
+  ordre.forEach((p, idx) => {
+    setTimeout(() => {
+      const ghost = document.getElementById('ghost-' + p.id);
+      const btn = document.createElement('button');
+      btn.className = p.type==='grande' ? 'plaque grande' : 'plaque petite';
+      btn.id = 'plaque-' + p.id;
+      btn.textContent = p.val;
+      btn.dataset.len = String(p.val).length;
+      btn.onclick = () => clicPlaque(p.id, p.val);
+      if(ghost) ghost.replaceWith(btn);
+      playTuile();
+      if(idx === ordre.length - 1) setTimeout(onDone, 300);
+    }, idx * 220);
+  });
 }
 
 function animerCible(digits, onDone) {
@@ -532,11 +575,10 @@ function animerCible(digits, onDone) {
       // Séquence de vitesses interpolée sur stepsNeeded steps
       function getSpeed(s) {
         const ratio = s / stepsNeeded;
-        if(ratio < 0.25) return 200 - ratio * 4 * 150; // 200→50ms
-        if(ratio < 0.55) return 50;                     // vitesse max
-        // Décélération easeOut
-        const t = (ratio - 0.55) / 0.45;
-        return 50 + t * t * 450;                        // 50→500ms max
+        if(ratio < 0.2) return 180 - ratio * 5 * 130; // 180→50ms
+        if(ratio < 0.65) return 50;                    // vitesse max
+        const t = (ratio - 0.65) / 0.35;
+        return 50 + t * t * 200;                       // 50→250ms max
       }
 
       let step = 0;
