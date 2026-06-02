@@ -324,34 +324,39 @@ sndMusiques.forEach(a => a.volume = 0.55);
 let allLoaded = true;
 
 // Son rouleau MP3 — joué une fois par rouleau, durée calée sur l'animation
-const sndRouleau = new Audio('ElevenLabs_clackity_wheel_spin.mp3');
-sndRouleau.volume = 0.9;
+// 3 instances dédiées (une par rouleau) pour éviter la latence mobile
+const sndRouleaux = [0,1,2].map(() => {
+  const a = new Audio('ElevenLabs_clackity_wheel_spin.mp3');
+  a.preload = 'auto';
+  return a;
+});
 
-function playRouleauSpin(dureeMs) {
-  // Jouer le sample et le couper exactement à la fin de l'animation
-  const snd = sndRouleau.cloneNode();
+// Précharger au premier clic (déblocage iOS)
+document.addEventListener('click', function prechargeRouleau() {
+  sndRouleaux.forEach(a => {
+    a.volume = 0;
+    a.play().then(() => { a.pause(); a.currentTime = 0; a.volume = 0.9; }).catch(()=>{});
+  });
+  document.removeEventListener('click', prechargeRouleau);
+}, {once: true});
+
+function playRouleauSpin(idx, dureeMs) {
+  const snd = sndRouleaux[idx];
+  snd.currentTime = 0;
   snd.volume = 0.9;
   snd.play().catch(()=>{});
+  // Fade out à la fin
   setTimeout(() => {
-    // Fade out rapide
-    const fadeSteps = 10;
-    const fadeInterval = 30;
-    let vol = 0.6;
+    let vol = 0.9;
     const fade = setInterval(() => {
-      vol = Math.max(0, vol - 0.6/fadeSteps);
-      snd.volume = vol;
+      vol = Math.max(0, vol - 0.09);
+      try { snd.volume = vol; } catch(e){}
       if(vol <= 0) { clearInterval(fade); snd.pause(); }
-    }, fadeInterval);
-  }, dureeMs - fadeSteps * 30);
+    }, 30);
+  }, Math.max(0, dureeMs - 300));
 }
 
-function playRouleau() {
-  // Pour les tics individuels pendant l'animation, son court
-  const snd = sndRouleau.cloneNode();
-  snd.volume = 0.6;
-  snd.play().catch(()=>{});
-  setTimeout(() => { snd.pause(); }, 80);
-}
+function playRouleau() {} // tics individuels supprimés
 
 function playTuile() {
   const t = AC.currentTime;
@@ -504,11 +509,17 @@ function animerCible(digits, onDone) {
     const delay = i * 500;
 
     setTimeout(() => {
-      // Séquence de vitesses : démarrage lent → accél → vitesse max → décél progressive
-      // Calcul du nombre de steps pour atterrir exactement sur target
-      // On fait au moins 20 steps (2 tours), puis on complète pour finir sur target
+      // Calcul de la durée totale pour synchroniser le son
       const minSteps = 22;
       const stepsNeeded = minSteps + ((target - (minSteps % 10) + 10) % 10);
+      let estimDur = 0;
+      for(let s=0; s<stepsNeeded; s++){
+        const r = s/stepsNeeded;
+        if(r<0.25) estimDur += 200 - r*4*150;
+        else if(r<0.55) estimDur += 50;
+        else { const tt=(r-0.55)/0.45; estimDur += 50+tt*tt*450; }
+      }
+      playRouleauSpin(i, estimDur);
 
       // Séquence de vitesses interpolée sur stepsNeeded steps
       function getSpeed(s) {
