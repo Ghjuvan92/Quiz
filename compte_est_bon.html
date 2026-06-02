@@ -79,6 +79,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   flex-wrap:nowrap;
   padding:8px 10px 0 10px;
   width:100%;box-sizing:border-box;overflow:hidden;
+  min-height:62px;
   background:
     linear-gradient(180deg,#8b5e2a 0%,#a06830 30%,#7a4e20 60%,#5c3a18 100%);
   border-top:2px solid #c4883a;
@@ -213,8 +214,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   transition:width .9s linear;width:100%;
   box-shadow:0 0 6px rgba(240,224,96,.4)}
 .timer-bar.urgent{background:var(--red);box-shadow:0 0 8px rgba(200,48,48,.5)}
-.timer-label{font-family:'Share Tech Mono',monospace;text-align:center;
-  font-size:.68rem;color:var(--dim);margin-top:.15rem;letter-spacing:.1em}
+
 
 /* intermédiaires */
 #plaques-inter{background:transparent;border:none;padding:.25rem 0;min-height:0}
@@ -242,7 +242,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   <!-- TIMER -->
   <div>
     <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
-    <div class="timer-label" id="timer-label">45</div>
   </div>
 
   <!-- PLAQUES de départ -->
@@ -318,20 +317,40 @@ function playErr() {
   o.start(t); o.stop(t + 0.2);
 }
 
+// ── Système audio MP3 simple
+// Précharger les éléments audio
+const sndMusiques = [new Audio('1.mp3'), new Audio('2.mp3'), new Audio('3.mp3')];
+sndMusiques.forEach(a => a.volume = 0.55);
+let allLoaded = true;
+
+// Son rouleau MP3 — joué une fois par rouleau, durée calée sur l'animation
+const sndRouleau = new Audio('ElevenLabs_clackity_wheel_spin.mp3');
+sndRouleau.volume = 0.9;
+
+function playRouleauSpin(dureeMs) {
+  // Jouer le sample et le couper exactement à la fin de l'animation
+  const snd = sndRouleau.cloneNode();
+  snd.volume = 0.9;
+  snd.play().catch(()=>{});
+  setTimeout(() => {
+    // Fade out rapide
+    const fadeSteps = 10;
+    const fadeInterval = 30;
+    let vol = 0.6;
+    const fade = setInterval(() => {
+      vol = Math.max(0, vol - 0.6/fadeSteps);
+      snd.volume = vol;
+      if(vol <= 0) { clearInterval(fade); snd.pause(); }
+    }, fadeInterval);
+  }, dureeMs - fadeSteps * 30);
+}
+
 function playRouleau() {
-  // Petit clic mécanique sec — bruit de palette
-  const t = AC.currentTime;
-  const buf = AC.createBuffer(1, AC.sampleRate * 0.03, AC.sampleRate);
-  const data = buf.getChannelData(0);
-  for(let i = 0; i < data.length; i++) {
-    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
-  }
-  const src = AC.createBufferSource();
-  const g = AC.createGain();
-  src.buffer = buf;
-  src.connect(g); g.connect(AC.destination);
-  g.gain.setValueAtTime(0.18, t);
-  src.start(t);
+  // Pour les tics individuels pendant l'animation, son court
+  const snd = sndRouleau.cloneNode();
+  snd.volume = 0.6;
+  snd.play().catch(()=>{});
+  setTimeout(() => { snd.pause(); }, 80);
 }
 
 function playTuile() {
@@ -403,13 +422,12 @@ function playBuzzer() {
 }
 
 // ── Musique de fond
-const MUSIQUES = ['1.mp3', '2.mp3', '3.mp3'];
 let bgMusic = null;
 
 function startMusique() {
   stopMusique();
-  const src = MUSIQUES[Math.floor(Math.random() * MUSIQUES.length)];
-  bgMusic = new Audio(src);
+  const idx = Math.floor(Math.random() * sndMusiques.length);
+  bgMusic = sndMusiques[idx].cloneNode();
   bgMusic.volume = 0.55;
   bgMusic.play().catch(()=>{});
 }
@@ -434,7 +452,7 @@ function startTimer() {
       stopTimer();
       stopMusique();
       playBuzzer();
-      document.getElementById('timer-label').textContent = 'Temps écoulé !';
+
     }
   }, 1000);
 }
@@ -449,7 +467,7 @@ function updateTimerDisplay() {
   const pct = (timerSecondes / TIMER_DURATION) * 100;
   bar.style.width = pct + '%';
   bar.classList.toggle('urgent', timerSecondes <= 10);
-  lbl.textContent = timerSecondes + 's';
+
 }
 
 function tirer() {
@@ -685,11 +703,8 @@ function effacer() {
 
 function reset() {
   document.getElementById('solution-wrap').classList.remove('on');
-  if(AC.state === 'suspended') {
-    AC.resume().then(() => tirer());
-  } else {
-    tirer();
-  }
+  if(AC.state === 'suspended') { AC.resume(); }
+  tirer();
 }
 
 // ── SOLVER (RPN exhaustif)
@@ -806,9 +821,15 @@ document.querySelectorAll('.op-btn').forEach(b=>{
   });
 });
 
+// ── Init
+// Précharger les sons dès que la page est chargée
+document.addEventListener('DOMContentLoaded', () => {
+  // Préchargement silencieux — les sons seront prêts au premier clic
+});
+
 // ── Init — attendre le clic sur Nouveau
 document.getElementById('cible').innerHTML =
-  '<div class="rouleau" style="color:rgba(240,224,96,.2)">?</div>'.repeat(3);
+  '<div class="rouleau" style="color:rgba(255,255,255,.25)">0</div>'.repeat(3);
 </script>
 </body>
 </html>
