@@ -328,30 +328,38 @@ let allLoaded = true;
 const sndRouleaux = [0,1,2].map(() => {
   const a = new Audio('ElevenLabs_clackity_wheel_spin.mp3');
   a.preload = 'auto';
+  a.load();
   return a;
 });
 
-// Précharger au premier clic (déblocage iOS)
-document.addEventListener('click', function prechargeRouleau() {
+// Débloquer iOS au premier clic utilisateur (n'importe lequel)
+let rouleauxDebloqués = false;
+document.addEventListener('click', function debloquerRouleaux() {
+  if(rouleauxDebloqués) return;
+  rouleauxDebloqués = true;
   sndRouleaux.forEach(a => {
     a.volume = 0;
-    a.play().then(() => { a.pause(); a.currentTime = 0; a.volume = 0.9; }).catch(()=>{});
+    a.play().then(() => {
+      a.pause();
+      a.currentTime = 0;
+      a.volume = 0.9;
+    }).catch(()=>{});
   });
-  document.removeEventListener('click', prechargeRouleau);
-}, {once: true});
+});
 
 function playRouleauSpin(idx, dureeMs) {
   const snd = sndRouleaux[idx];
   snd.currentTime = 0;
   snd.volume = 0.9;
-  snd.play().catch(()=>{});
+  const p = snd.play();
+  if(p) p.catch(()=>{});
   // Fade out à la fin
   setTimeout(() => {
     let vol = 0.9;
     const fade = setInterval(() => {
       vol = Math.max(0, vol - 0.09);
       try { snd.volume = vol; } catch(e){}
-      if(vol <= 0) { clearInterval(fade); snd.pause(); }
+      if(vol <= 0) { clearInterval(fade); try{snd.pause();}catch(e){} }
     }, 30);
   }, Math.max(0, dureeMs - 300));
 }
