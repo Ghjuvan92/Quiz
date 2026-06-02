@@ -75,9 +75,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 
 /* PLAQUES — style tuiles TV */
 .plaques{
-  display:flex;gap:5px;justify-content:center;align-items:flex-end;
+  display:flex;gap:4px;justify-content:center;align-items:flex-end;
   flex-wrap:nowrap;
-  padding:8px 14px 0 14px;
+  padding:8px 10px 0 10px;
+  width:100%;box-sizing:border-box;overflow:hidden;
   background:
     linear-gradient(180deg,#8b5e2a 0%,#a06830 30%,#7a4e20 60%,#5c3a18 100%);
   border-top:2px solid #c4883a;
@@ -87,7 +88,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   border-radius:3px;
   box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,200,80,.2);}
 .plaque{
-  width:62px;height:46px;
+  width:min(62px, calc((min(100vw, 420px) - 80px) / 6));height:46px;
   border-radius:3px;
   display:flex;align-items:center;justify-content:center;
   font-family:'Impact','Arial Black',sans-serif;
@@ -102,14 +103,19 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .plaque.grande{background:#161616;color:#e8e8e8;border-color:#3a3a3a;}
 .plaque[data-len="2"]{font-size:1.55rem;letter-spacing:0px;}
 .plaque[data-len="3"]{font-size:1.1rem;letter-spacing:0px;padding-bottom:2px;}
-.plaque.selected{outline:3px solid #e8c84a;transform:translateY(-4px);
-  box-shadow:0 7px 0 #000000,0 7px 10px rgba(0,0,0,.6);}
+.plaque.selected{
+  background:#e8c84a !important;
+  color:#1a1400 !important;
+  transform:translateY(-5px);
+  box-shadow:0 9px 0 #8a7010,0 9px 14px rgba(0,0,0,.7);
+  border-color:#c8a820;
+}
 .plaque.used-in-step{opacity:.15;box-shadow:none;transform:translateY(2px);pointer-events:none;}
 .plaque:not([disabled]):hover{transform:translateY(-2px);
   box-shadow:0 5px 0 #000000,0 5px 8px rgba(0,0,0,.5);}
 
 /* Plaque fantôme (utilisée) */
-.plaque-ghost{width:62px;height:46px;border-radius:3px;
+.plaque-ghost{width:min(62px, calc((min(100vw, 420px) - 80px) / 6));height:46px;border-radius:3px;
   background:rgba(0,0,0,.2);
   border:1px dashed rgba(255,255,255,.1)}
 /* Plaque utilisée dans étapes : encadrée */
@@ -236,7 +242,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   <!-- TIMER -->
   <div>
     <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
-    <div class="timer-label" id="timer-label">30</div>
+    <div class="timer-label" id="timer-label">45</div>
   </div>
 
   <!-- PLAQUES de départ -->
@@ -293,10 +299,12 @@ let opSelection = null; // opérateur sélectionné
 let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
 let valeursDispos = []; // [{id,val}] état courant
 
-const TIMER_DURATION = 30;
+const TIMER_DURATION = 45;
 let timerInterval = null;
 let timerSecondes = TIMER_DURATION;
 const AC = new (window.AudioContext || window.webkitAudioContext)();
+// Débloquer l'AudioContext au premier clic (politique navigateur mobile)
+document.addEventListener('click', () => { if(AC.state === 'suspended') AC.resume(); }, {once: false});
 
 function playTick() {} // inutilisé
 
@@ -308,6 +316,22 @@ function playErr() {
   g.gain.linearRampToValueAtTime(0.1, t + 0.01);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
   o.start(t); o.stop(t + 0.2);
+}
+
+function playRouleau() {
+  // Petit clic mécanique sec — bruit de palette
+  const t = AC.currentTime;
+  const buf = AC.createBuffer(1, AC.sampleRate * 0.03, AC.sampleRate);
+  const data = buf.getChannelData(0);
+  for(let i = 0; i < data.length; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+  }
+  const src = AC.createBufferSource();
+  const g = AC.createGain();
+  src.buffer = buf;
+  src.connect(g); g.connect(AC.destination);
+  g.gain.setValueAtTime(0.18, t);
+  src.start(t);
 }
 
 function playTuile() {
@@ -378,15 +402,37 @@ function playBuzzer() {
   o2.start(t); o2.stop(t + 1.2);
 }
 
+// ── Musique de fond
+const MUSIQUES = ['1.mp3', '2.mp3', '3.mp3'];
+let bgMusic = null;
+
+function startMusique() {
+  stopMusique();
+  const src = MUSIQUES[Math.floor(Math.random() * MUSIQUES.length)];
+  bgMusic = new Audio(src);
+  bgMusic.volume = 0.55;
+  bgMusic.play().catch(()=>{});
+}
+
+function stopMusique() {
+  if(bgMusic) {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    bgMusic = null;
+  }
+}
+
 function startTimer() {
   stopTimer();
   timerSecondes = TIMER_DURATION;
   updateTimerDisplay();
+  startMusique();
   timerInterval = setInterval(() => {
     timerSecondes--;
     updateTimerDisplay();
     if(timerSecondes <= 0) {
       stopTimer();
+      stopMusique();
       playBuzzer();
       document.getElementById('timer-label').textContent = 'Temps écoulé !';
     }
@@ -415,9 +461,6 @@ function tirer() {
   etapes = [];
   selection = null;
   opSelection = null;
-  const digits = String(cible).padStart(3,'0').split('');
-  document.getElementById('cible').innerHTML =
-    digits.map(d=>`<div class="rouleau">${d}</div>`).join('');
   document.getElementById('solution-wrap').classList.remove('on');
   document.getElementById('rc').textContent = '';
   document.getElementById('rc').className = 'resultat-courant';
@@ -426,7 +469,57 @@ function tirer() {
   renderPlaques();
   renderOps();
   renderEtapes();
-  startTimer();
+  // Animation roulette puis démarrage du chrono
+  animerCible(String(cible).padStart(3,'0').split(''), () => startTimer());
+}
+
+function animerCible(digits, onDone) {
+  const el = document.getElementById('cible');
+  el.innerHTML = digits.map((_,i) =>
+    `<div class="rouleau" id="rouleau-${i}">0</div>`
+  ).join('');
+
+  let done = 0;
+  digits.forEach((finalDigit, i) => {
+    const rouleau = document.getElementById(`rouleau-${i}`);
+    const target = parseInt(finalDigit);
+    const delay = i * 500;
+
+    setTimeout(() => {
+      // Séquence de vitesses : démarrage lent → accél → vitesse max → décél progressive
+      // Calcul du nombre de steps pour atterrir exactement sur target
+      // On fait au moins 20 steps (2 tours), puis on complète pour finir sur target
+      const minSteps = 22;
+      const stepsNeeded = minSteps + ((target - (minSteps % 10) + 10) % 10);
+
+      // Séquence de vitesses interpolée sur stepsNeeded steps
+      function getSpeed(s) {
+        const ratio = s / stepsNeeded;
+        if(ratio < 0.25) return 200 - ratio * 4 * 150; // 200→50ms
+        if(ratio < 0.55) return 50;                     // vitesse max
+        // Décélération easeOut
+        const t = (ratio - 0.55) / 0.45;
+        return 50 + t * t * 450;                        // 50→500ms max
+      }
+
+      let step = 0;
+      let current = 0;
+      function tick() {
+        rouleau.textContent = current % 10;
+        playRouleau();
+        current++;
+        step++;
+        if(step >= stepsNeeded) {
+          rouleau.textContent = target;
+          done++;
+          if(done === digits.length) onDone();
+          return;
+        }
+        setTimeout(tick, getSpeed(step));
+      }
+      setTimeout(tick, getSpeed(0));
+    }, delay);
+  });
 }
 
 function renderPlaques() {
@@ -507,6 +600,7 @@ function renderEtapes() {
     rc.className='resultat-courant exact';
     playExact();
     stopTimer();
+    stopMusique();
   } else {
     rc.textContent='';
     rc.className='resultat-courant';
@@ -591,7 +685,11 @@ function effacer() {
 
 function reset() {
   document.getElementById('solution-wrap').classList.remove('on');
-  tirer();
+  if(AC.state === 'suspended') {
+    AC.resume().then(() => tirer());
+  } else {
+    tirer();
+  }
 }
 
 // ── SOLVER (RPN exhaustif)
@@ -608,6 +706,7 @@ function tagSolExpr(expr){
 
 function demanderSolution() {
   stopTimer();
+  stopMusique();
   document.getElementById('solution-wrap').classList.remove('on');
   const nums = plaques.map(p=>p.val);
   const res = solver(nums, cible);
@@ -658,14 +757,13 @@ function solver(nums, target) {
   function search(vals, steps) {
     for(const {v} of vals){
       const d=Math.abs(v-target);
-      if(d<bestDiff){
+      const usefulSteps = filterUsefulSteps(steps, v);
+      if(d<bestDiff || (d===bestDiff && usefulSteps.length < bestResult.steps.length)){
         bestDiff=d;
-        // Filtrer les steps : ne garder que ceux dont le résultat est utilisé
-        const usefulSteps = filterUsefulSteps(steps, v);
         bestResult={exact:d===0, best:v, steps:usefulSteps};
       }
     }
-    if(bestDiff===0) return;
+    if(bestDiff===0 && bestResult.steps.length<=3) return;
     if(vals.length<2) return;
 
     for(let i=0;i<vals.length;i++){
