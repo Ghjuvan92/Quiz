@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Compte est Bon</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&family=Caveat:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#1a1a0e;
@@ -41,9 +41,22 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   box-shadow:0 0 20px rgba(240,224,96,.08),inset 0 2px 8px rgba(0,0,0,.6)}
 .cible-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.25em;
   text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
-.cible-num{font-family:'Share Tech Mono',monospace;font-size:3.2rem;font-weight:400;
-  color:var(--segment);text-shadow:0 0 12px rgba(240,224,96,.6),0 0 30px rgba(240,224,96,.2);
-  letter-spacing:.12em;line-height:1}
+.cible-num{display:flex;justify-content:center;align-items:center;gap:6px;padding:.3rem 0}
+.rouleau{
+  width:56px;height:76px;
+  background:#000;
+  border:2px solid #333;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:3.2rem;font-weight:700;
+  color:#ffffff;
+  box-shadow:inset 0 0 8px rgba(0,0,0,.9);
+  position:relative;overflow:hidden;
+}
+.rouleau::before,.rouleau::after{
+  content:'';position:absolute;left:0;right:0;height:1px;
+  background:rgba(255,255,255,.06);
+}
+.rouleau::before{top:33%}.rouleau::after{bottom:33%}
 
 /* PLAQUES — style tuiles TV */
 .plaques{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;
@@ -54,17 +67,18 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   font-weight:400;cursor:pointer;transition:transform .12s,box-shadow .12s;
   border:none;user-select:none;position:relative}
 .plaque.petite{
-  background:linear-gradient(145deg,#e8c84a,#c8a828);
-  color:#1a1400;
-  box-shadow:2px 2px 0 #8a7010,0 3px 8px rgba(0,0,0,.5)}
+  background:#000000;
+  color:#ffffff;
+  border:2px solid #444;border-radius:4px;
+  box-shadow:0 3px 0 #000,0 3px 8px rgba(0,0,0,.6)}
 .plaque.grande{
-  background:linear-gradient(145deg,#d4a030,#a87818);
-  color:#0a0800;
-  box-shadow:2px 2px 0 #705010,0 3px 8px rgba(0,0,0,.5);
-  font-size:1.1rem}
+  background:#000000;
+  color:#ffffff;
+  border:2px solid #666;border-radius:4px;
+  font-size:1.1rem;
+  box-shadow:0 3px 0 #000,0 3px 8px rgba(0,0,0,.6)}
 .plaque.selected{
-  outline:none;
-  box-shadow:0 0 0 3px #f0e060,2px 2px 0 #8a7010;
+  outline:3px solid #ffffff;
   transform:scale(1.08) translateY(-2px)}
 .plaque:not([disabled]):hover{transform:scale(1.05) translateY(-1px)}
 
@@ -94,31 +108,42 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .op-btn:hover:not(.selected){background:linear-gradient(145deg,#3a3a22,#252512);color:var(--white)}
 
 /* ÉTAPES */
-.etapes-wrap{background:#0e0e06;border:1px solid #3a3a18;border-radius:var(--r);
-  min-height:48px;overflow:hidden}
-.etapes-inner{padding:.45rem .65rem .5rem}
+.etapes-wrap{
+  background:#2d5a38;
+  border:3px solid #1a3a22;
+  border-radius:4px;
+  min-height:56px;overflow:hidden;
+  box-shadow:inset 0 2px 14px rgba(0,0,0,.45)}
+.etapes-inner{padding:.5rem .75rem .6rem}
 .num-orig{
   display:inline-block;
-  background:linear-gradient(145deg,#e8c84a,#c8a828);
-  color:#1a1400;
-  border-radius:4px;
-  padding:0 5px;
+  background:#000000;
+  color:#ffffff;
+  border:1.5px solid #666;
+  border-radius:3px;
+  padding:2px 6px 0px 6px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.85em;
   font-weight:400;
-  box-shadow:1px 1px 0 #8a7010;
-  line-height:1.4;
+  vertical-align:middle;
+  line-height:1.5;
+  position:relative;top:-1px;
 }
 .etape-row{display:flex;align-items:center;justify-content:space-between;
-  padding:.18rem 0;border-bottom:1px solid rgba(255,255,255,.05);
-  font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--white)}
-.etape-row:last-child{border-bottom:none}.etape-del{background:none;border:none;cursor:pointer;
-  color:rgba(240,236,224,.3);font-size:.75rem;padding:0 .3rem;line-height:1}
-.etape-del:hover{color:var(--red)}
+  padding:.06rem 0;border-bottom:none;
+  font-family:'Caveat',cursive;font-size:1.3rem;
+  color:rgba(255,255,255,.9);letter-spacing:.02em;line-height:1.6}
+.etape-row:last-child{border-bottom:none}
+.etape-del{background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.2);font-size:.75rem;padding:0 .3rem;line-height:1;
+  font-family:'Share Tech Mono',monospace}
+.etape-del:hover{color:rgba(255,100,100,.6)}
 
 /* RÉSULTAT */
 .resultat-courant{font-size:.75rem;text-align:center;
   font-family:'Share Tech Mono',monospace;color:var(--dim);min-height:1.1rem}
-.resultat-courant.exact{color:var(--segment);
-  text-shadow:0 0 8px rgba(240,224,96,.5);font-size:.9rem}
+.resultat-courant.exact{color:#ffffff;font-size:.9rem;
+  font-family:'Caveat',cursive;}
 .resultat-courant.err{color:var(--red);font-size:.8rem}
 
 /* ACTIONS */
@@ -206,7 +231,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   <!-- ÉTAPES -->
   <div class="etapes-wrap">
     <div class="etapes-inner" id="etapes">
-      <div class="etapes-vide">Sélectionne une plaque, un opérateur, puis une autre plaque</div>
+      <div class="etapes-vide"></div>
     </div>
   </div>
 
@@ -360,7 +385,9 @@ function tirer() {
   etapes = [];
   selection = null;
   opSelection = null;
-  document.getElementById('cible').textContent = cible;
+  const digits = String(cible).padStart(3,'0').split('');
+  document.getElementById('cible').innerHTML =
+    digits.map(d=>`<div class="rouleau">${d}</div>`).join('');
   document.getElementById('solution-wrap').classList.remove('on');
   document.getElementById('rc').textContent = '';
   document.getElementById('rc').className = 'resultat-courant';
@@ -439,7 +466,7 @@ function renderEtapes() {
   }
   el.innerHTML = etapes.map((e,i)=>`
     <div class="etape-row">
-      <span class="etape-expr" style="font-size:.82rem">${e.expr} <span style="margin-left:.3rem">= ${e.res}</span></span>
+      <span class="etape-expr">${e.expr} <span>= ${e.res}</span></span>
       <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
     </div>`).join('');
   // Vérifier si on a atteint la cible
@@ -644,8 +671,9 @@ document.querySelectorAll('.op-btn').forEach(b=>{
   });
 });
 
-// ── Init
-tirer();
+// ── Init — attendre le clic sur Nouveau
+document.getElementById('cible').innerHTML =
+  '<div class="rouleau" style="color:rgba(240,224,96,.2)">?</div>'.repeat(3);
 </script>
 </body>
 </html>
