@@ -265,14 +265,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   <!-- ÉTAPES -->
   <div class="etapes-wrap">
     <div class="etapes-inner" id="etapes">
-      <div class="etapes-vide"></div>
+      <div class="etapes-vide" style="color:rgba(255,255,255,.6);font-family:'Caveat',cursive;font-size:1.1rem;text-align:center;padding:.6rem .5rem;line-height:1.6">
+        Combine les 6 tuiles avec&nbsp;+&nbsp;−&nbsp;×&nbsp;÷<br>pour atteindre la cible en 45 secondes.
+      </div>
     </div>
   </div>
 
   <!-- ACTIONS -->
   <div class="actions">
     <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
-    <button class="btn-action" type="button" onclick="reset()">↺ Nouveau</button>
+    <button class="btn-action" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
     <button class="btn-action primary" type="button" onclick="demanderSolution()">Solution</button>
   </div>
   <div style="text-align:center;margin-top:-.1rem">
@@ -766,6 +768,9 @@ function effacer() {
 function reset() {
   document.getElementById('solution-wrap').classList.remove('on');
   if(AC.state === 'suspended') { AC.resume(); }
+  // Après le premier lancement, changer le bouton
+  const btn = document.getElementById('btn-nouveau');
+  if(btn) { btn.textContent = '↺ Nouveau'; }
   tirer();
 }
 
