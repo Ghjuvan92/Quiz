@@ -292,8 +292,8 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 
 <script>
 // ── Tirage
-const GRANDES = [25,50,75,100];
-const PETITES = [1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
+// Pool officiel : 4 grandes (une chacune) + 20 petites (1-10 en double exemplaire)
+const POOL = [25,50,75,100, 1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
 const shuf = a => [...a].sort(()=>Math.random()-.5);
 
 let plaques = [];      // {val, id, type}
@@ -501,9 +501,9 @@ function updateTimerDisplay() {
 }
 
 function tirer() {
-  const grandes = shuf(GRANDES).slice(0,2);
-  const petites = shuf(PETITES).slice(0,4);
-  plaques = [...grandes, ...petites].map((v,i) => ({val:v, id:i, type: grandes.includes(v)&&i<2?'grande':'petite'}));
+  const tirage = shuf([...POOL]).slice(0, 6);
+  const grandesVals = new Set([25,50,75,100]);
+  plaques = tirage.map((v,i) => ({val:v, id:i, type: grandesVals.has(v)?'grande':'petite'}));
   cible = Math.floor(Math.random()*900)+100;
   valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
   etapes = [];
@@ -529,11 +529,7 @@ function revelerPlaques(plaquesArr, onDone) {
     g.className = 'plaque-ghost'; g.id = 'ghost-' + p.id;
     el.appendChild(g);
   });
-  const ordre = [...plaquesArr].sort((a,b) => {
-    if(a.type==='grande' && b.type!=='grande') return -1;
-    if(a.type!=='grande' && b.type==='grande') return 1;
-    return 0;
-  });
+  const ordre = [...plaquesArr];
   ordre.forEach((p, idx) => {
     setTimeout(() => {
       const ghost = document.getElementById('ghost-' + p.id);
