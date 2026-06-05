@@ -1,4 +1,4 @@
-const CACHE = 'ceb-v1';
+const CACHE = 'ceb-v2';
 const FILES = [
   'compte_est_bon.html',
   '1.mp3',
