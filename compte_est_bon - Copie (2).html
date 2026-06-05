@@ -4,12 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Compte est Bon</title>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#c8a030">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Compte est Bon">
-<link rel="apple-touch-icon" href="/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&family=Caveat:wght@500&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -256,7 +250,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 <body>
 
 <div class="nav">
-  <div class="back"></div>
+  <a class="back" href="index.html">← Accueil</a>
   <div class="hdr"><h1>Le <em>Compte est Bon</em></h1></div>
 </div>
 
@@ -1209,20 +1203,13 @@ function afficherHistorique() {
   body.innerHTML = displayHist.map(h => {
     const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
     const cls = h.exact ? 'hist-exact' : (ecart !== null && ecart <= 10) ? 'hist-approche' : 'hist-echec';
-    const gauche = h.exact ? `#${h.num} · Le compte est bon !` : (h.meilleur === null ? `#${h.num} · Abandon` : `#${h.num} · écart ${ecart}`);
-    const droite = h.exact ? `🎯` : (h.meilleur === null ? `` : `${h.meilleur} vs ${h.cible}`);
+    const gauche = h.exact ? `#${h.num} · Le compte est bon !` : (h.meilleur === null ? `#${h.num} · Abandon` : `#${h.num} · cible ${h.cible}`);
+    const droite = h.exact ? '🎯' : (h.meilleur === null ? '—' : `${ecart}`);
     return `<div class="hist-row">
       <span class="${cls}">${gauche}</span>
-      <span class="hist-cible">${droite}</span>
+      <span class="${cls}" style="font-weight:700">${droite}</span>
     </div>`;
   }).join('');
-}
-
-// ── PWA Service Worker
-if('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
-  });
 }
 
 // ── Init
