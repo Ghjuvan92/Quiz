@@ -126,7 +126,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 
 /* OPÉRATEURS */
 .ops{display:flex;gap:6px;justify-content:center}
-.op-btn{width:62px;height:62px;border-radius:10px;
+.op-btn{width:52px;height:52px;border-radius:8px;
   border:2px solid rgba(240,236,224,.25);
   background:linear-gradient(145deg,#2a2a18,#1a1a0e);
   font-family:'Share Tech Mono',monospace;font-size:1.5rem;
@@ -192,29 +192,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 .btn-action.primary:hover{background:#a82020}
 
 /* SOLUTION */
-/* HISTORIQUE */
-.historique-wrap{background:#0e0e06;border:1px solid #3a3a18;border-radius:var(--r);
-  overflow:hidden;margin-top:.2rem}
-.historique-titre{font-family:'Share Tech Mono',monospace;font-size:.55rem;
-  letter-spacing:.2em;text-transform:uppercase;color:var(--tile-yellow);
-  padding:.45rem .65rem .2rem}
-.hist-header{display:flex;justify-content:space-between;
-  font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--dim);
-  padding:.1rem .65rem .2rem;border-bottom:1px solid rgba(255,255,255,.08)}
-.hist-row{display:flex;justify-content:space-between;align-items:center;
-  padding:.2rem .65rem;border-top:1px solid rgba(255,255,255,.05);
-  font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--white)}
-.share-btn{background:none;border:1px solid rgba(240,236,224,.2);border-radius:6px;
-  color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:.65rem;
-  padding:.25rem .6rem;cursor:pointer;transition:all .15s;width:100%;margin-top:.3rem;
-  letter-spacing:.08em}
-.share-btn:hover{background:rgba(240,236,224,.1);color:var(--white)}
-.hist-cible{color:var(--dim)}
-.hist-exact{color:#6ad450}
-.hist-approche{color:#f0b060}
-.hist-echec{color:#e87070}
-
 .solution-wrap{background:#0e0e06;border:1px solid #3a3a18;
   border-radius:var(--r);display:none;overflow:hidden}
 .solution-wrap.on{display:block;animation:slin .3s ease}
@@ -298,8 +275,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   <div class="actions">
     <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
     <button class="btn-action" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
-    <button class="btn-action" type="button" id="btn-clear" onclick="clearTout()" style="display:none">✕ Clear</button>
-    <button class="btn-action" type="button" id="btn-memoriser" onclick="memoriser()" style="display:none">📌 Mémoriser</button>
     <button class="btn-action primary" type="button" onclick="demanderSolution()">Solution</button>
   </div>
   <div style="text-align:center;margin-top:-.1rem">
@@ -313,16 +288,6 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
     <div class="solution-inner" id="solution-inner"></div>
   </div>
 
-  <!-- HISTORIQUE -->
-  <div class="historique-wrap" id="historique-wrap" style="display:none">
-    <div class="historique-titre" id="hist-titre">Parties du jour</div>
-    <div class="hist-header"><span>Partie</span><span>Écart</span></div>
-    <div id="historique-body"></div>
-    <div style="padding:.4rem .65rem .55rem">
-      <button class="btn-action" onclick="partager()" id="share-btn" style="width:100%">⬆ Partager</button>
-    </div>
-  </div>
-
 </div>
 
 <script>
@@ -331,78 +296,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 const POOL = [25,50,75,100, 1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
 const shuf = a => [...a].sort(()=>Math.random()-.5);
 
-// ── Générateur déterministe (mulberry32)
-function mulberry32(seed) {
-  return function() {
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-function seedFromDate(d) {
-  // Génère un entier à partir de la date : YYYYMMDD
-  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
-}
-
-function getToday() {
-  const d = new Date();
-  return d.toLocaleDateString('fr');
-}
-
-// Génère le tirage N du jour (0-based) de façon déterministe
-function tirageJour(n) {
-  const d = new Date();
-  const seed = seedFromDate(d) * 1000 + n;
-  const rng = mulberry32(seed);
-  
-  // Mélanger le pool avec ce rng
-  const pool = [...POOL];
-  for(let i = pool.length-1; i > 0; i--) {
-    const j = Math.floor(rng() * (i+1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  const tiragePlaques = pool.slice(0, 6);
-  
-  // Cible entre 101 et 999
-  const cibleVal = 101 + Math.floor(rng() * 899);
-  
-  return {plaques: tiragePlaques, cible: cibleVal};
-}
-
-// ── Gestion des parties du jour
-function getJourData() {
-  const today = getToday();
-  const raw = localStorage.getItem('ceb_jour');
-  if(raw) {
-    const data = JSON.parse(raw);
-    if(data.date === today) return data;
-  }
-  // Nouveau jour
-  const data = {date: today, parties: [], current: 0};
-  localStorage.setItem('ceb_jour', JSON.stringify(data));
-  return data;
-}
-
-function saveJourData(data) {
-  localStorage.setItem('ceb_jour', JSON.stringify(data));
-}
-
-function getNumeroPartie() {
-  const data = getJourData();
-  return data.current + 1; // 1-based pour l'affichage
-}
-
 let plaques = [];      // {val, id, type}
 let cible = 0;
 let disponibles = []; // ids des plaques encore utilisables
 let selection = null; // {idx, val} première plaque sélectionnée
 let opSelection = null; // opérateur sélectionné
 let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
-let valeursDispos = [];
-let partieSauvegardee = false;
-let meilleurMemorise = null; // résultat mémorisé par le joueur // [{id,val}] état courant
+let valeursDispos = []; // [{id,val}] état courant
 
 const TIMER_DURATION = 45;
 let timerInterval = null;
@@ -503,31 +403,18 @@ function playOp() {
 }
 
 function playExact() {
-  // Arpège festif : 4 notes + accord final
+  // Deux notes courtes montantes, discrètes
   const t = AC.currentTime;
-  const notes = [[0, 523], [0.1, 659], [0.2, 784], [0.32, 1047]];
-  notes.forEach(([delay, freq]) => {
-    const o = AC.createOscillator();
-    const g = AC.createGain();
-    o.connect(g); g.connect(AC.destination);
-    o.type = 'triangle';
-    o.frequency.setValueAtTime(freq, t + delay);
-    g.gain.setValueAtTime(0, t + delay);
-    g.gain.linearRampToValueAtTime(0.18, t + delay + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.35);
-    o.start(t + delay); o.stop(t + delay + 0.4);
-  });
-  // Petite réverbération : accord Do majeur en écho
-  [[0.5, 523],[0.5, 659],[0.5, 784]].forEach(([delay, freq]) => {
+  [[0, 660], [0.12, 880]].forEach(([delay, freq]) => {
     const o = AC.createOscillator();
     const g = AC.createGain();
     o.connect(g); g.connect(AC.destination);
     o.type = 'sine';
     o.frequency.setValueAtTime(freq, t + delay);
     g.gain.setValueAtTime(0, t + delay);
-    g.gain.linearRampToValueAtTime(0.08, t + delay + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.6);
-    o.start(t + delay); o.stop(t + delay + 0.65);
+    g.gain.linearRampToValueAtTime(0.12, t + delay + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.18);
+    o.start(t + delay); o.stop(t + delay + 0.2);
   });
 }
 
@@ -595,14 +482,7 @@ function startTimer() {
       stopTimer();
       stopMusique();
       playBuzzer();
-      // Sauvegarder avec le meilleur résultat atteint
-      let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
-      // Utiliser le meilleur mémorisé si plus proche
-      if(meilleurMemorise !== null) {
-        if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible))
-          meilleur = meilleurMemorise;
-      }
-      if(meilleur !== null && !partieSauvegardee) sauvegarderPartie(cible, meilleur, meilleur===cible);
+
     }
   }, 1000);
 }
@@ -621,22 +501,14 @@ function updateTimerDisplay() {
 }
 
 function tirer() {
-  const jourData = getJourData();
-  const n = jourData.current;
-  const t = tirageJour(n);
+  const tirage = shuf([...POOL]).slice(0, 6);
   const grandesVals = new Set([25,50,75,100]);
-  plaques = t.plaques.map((v,i) => ({val:v, id:i, type: grandesVals.has(v)?'grande':'petite'}));
-  cible = t.cible;
+  plaques = tirage.map((v,i) => ({val:v, id:i, type: grandesVals.has(v)?'grande':'petite'}));
+  cible = Math.floor(Math.random()*900)+100;
   valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
   etapes = [];
   selection = null;
   opSelection = null;
-  partieSauvegardee = false;
-  meilleurMemorise = null;
-  document.getElementById('btn-nouveau').style.display = 'none';
-  document.getElementById('btn-memoriser').style.display = 'none';
-  document.getElementById('btn-clear').style.display = 'block';
-  document.getElementById('historique-wrap').style.display = 'none';
   document.getElementById('solution-wrap').classList.remove('on');
   document.getElementById('rc').textContent = '';
   document.getElementById('rc').className = 'resultat-courant';
@@ -790,42 +662,23 @@ function renderOps() {
 
 function renderEtapes() {
   const el = document.getElementById('etapes');
-  // Afficher le mémo en haut à droite si présent
-  const memoHtml = meilleurMemorise !== null
-    ? `<div style="text-align:right;font-family:'Share Tech Mono',monospace;font-size:.7rem;
-        color:rgba(255,255,255,.45);margin-bottom:.3rem;font-style:normal">
-        mémo : ${meilleurMemorise} <span style="color:rgba(255,255,255,.25)">(écart ${Math.abs(meilleurMemorise-cible)})</span>
-       </div>` : '';
   if(etapes.length===0){
-    el.innerHTML = memoHtml;
+    el.innerHTML='';
     return;
   }
-  // Vérifier si on a atteint la cible
-  el.innerHTML = memoHtml + etapes.map((e,i)=>`
+  el.innerHTML = etapes.map((e,i)=>`
     <div class="etape-row">
       <span class="etape-expr">${e.expr} <span>= ${e.res}</span></span>
       <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
     </div>`).join('');
-  // Afficher Mémoriser uniquement si le dernier résultat est meilleur que le mémo
-  const btnMem = document.getElementById('btn-memoriser');
-  if(btnMem && btnMem.style.display !== undefined) {
-    if(etapes.length > 0) {
-      const dernierRes = etapes[etapes.length-1].res;
-      const ecartDernier = Math.abs(dernierRes - cible);
-      const ecartMemo = meilleurMemorise !== null ? Math.abs(meilleurMemorise - cible) : Infinity;
-      btnMem.style.display = (ecartDernier < ecartMemo) ? 'block' : 'none';
-    } else {
-      btnMem.style.display = 'none';
-    }
-  }
+  // Vérifier si on a atteint la cible
   const rc = document.getElementById('rc');
   if(valeursDispos.some(v=>v.val===cible)){
-    rc.textContent='LE COMPTE EST BON !';
+    rc.textContent='EXACT !';
     rc.className='resultat-courant exact';
     playExact();
     stopTimer();
     stopMusique();
-    if(!partieSauvegardee) sauvegarderPartie(cible, cible, true);
   } else {
     rc.textContent='';
     rc.className='resultat-courant';
@@ -932,23 +785,6 @@ function tagSolExpr(expr){
 function demanderSolution() {
   stopTimer();
   stopMusique();
-  // Sauvegarder uniquement si pas déjà sauvegardé (pas EXACT)
-  const dejaSauve = document.getElementById('rc').textContent.includes('COMPTE EST BON');
-  if(!dejaSauve && !partieSauvegardee) {
-    let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
-    // Garder le meilleur entre le dernier résultat et le mémorisé
-    if(meilleurMemorise !== null) {
-      if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible))
-        meilleur = meilleurMemorise;
-    }
-    if(meilleur !== null) {
-      // Le joueur a calculé quelque chose
-      sauvegarderPartie(cible, meilleur, meilleur===cible);
-    } else {
-      // Le joueur n'a rien calculé — on sauvegarde null, jamais exact
-      sauvegarderPartie(cible, null, false);
-    }
-  }
   document.getElementById('solution-wrap').classList.remove('on');
   const nums = plaques.map(p=>p.val);
   const res = solver(nums, cible);
@@ -1048,177 +884,11 @@ document.querySelectorAll('.op-btn').forEach(b=>{
   });
 });
 
-// ── Historique
-function partager() {
-  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
-  const today = getToday();
-  const todayHist = hist.filter(h => h.date === today).slice().reverse();
-  if(!todayHist.length) return;
-
-  // Générer une image canvas
-  const W = 480, PAD = 28;
-  const lineH = 44;
-  const H = 90 + todayHist.length * lineH + 30;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // Fond
-  ctx.fillStyle = '#0e0e08';
-  ctx.fillRect(0, 0, W, H);
-  // Bordure
-  ctx.strokeStyle = '#c8a030';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(6, 6, W-12, H-12);
-
-  // Titre
-  ctx.fillStyle = '#e8c84a';
-  ctx.font = 'bold 22px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('🔢 LE COMPTE EST BON', W/2, 42);
-
-  // Date
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '14px monospace';
-  ctx.fillText(today, W/2, 64);
-
-  // Séparateur
-  ctx.strokeStyle = 'rgba(200,160,48,0.4)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(PAD, 76); ctx.lineTo(W-PAD, 76); ctx.stroke();
-
-  // Parties
-  todayHist.forEach((h, i) => {
-    const y = 76 + i * lineH + 30;
-    const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
-    const exact = h.exact;
-    const label = exact ? 'LE COMPTE EST BON !' : (h.meilleur === null ? 'Abandon' : `À ${ecart} de la cible`);
-    const color = exact ? '#6ad450' : (ecart !== null && ecart <= 10) ? '#f0b060' : '#e87070';
-
-    // Numéro et cible
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.font = '13px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(`#${h.num}  Cible ${h.cible}`, PAD, y);
-
-    // Résultat
-    ctx.fillStyle = color;
-    ctx.font = 'bold 13px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(label, W - PAD, y);
-  });
-
-  // URL
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.font = '11px monospace';
-  ctx.textAlign = 'center';
-  // pas d'URL
-
-  // Partager ou télécharger
-  canvas.toBlob(blob => {
-    const file = new File([blob], 'compte-est-bon.png', {type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
-      navigator.share({files:[file], title:'Le Compte est Bon'}).catch(()=>{});
-    } else {
-      // Fallback : téléchargement
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'compte-est-bon.png';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  }, 'image/png');
-}
-
-function clearTout() {
-  // Remet toutes les tuiles disponibles, efface toutes les étapes
-  // mais GARDE le meilleurMemorise
-  etapes = [];
-  valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
-  selection = null;
-  opSelection = null;
-  document.getElementById('plaques-orig').innerHTML = '';
-  document.getElementById('plaques-inter').innerHTML = '';
-  document.getElementById('rc').textContent = '';
-  document.getElementById('rc').className = 'resultat-courant';
-  renderPlaques();
-  renderOps();
-  renderEtapes();
-}
-
-function memoriser() {
-  // Mémorise le dernier résultat intermédiaire comme meilleur score provisoire
-  if(etapes.length === 0) return;
-  const dernierRes = etapes[etapes.length-1].res;
-  const ecart = Math.abs(dernierRes - cible);
-  const ecartMemo = meilleurMemorise !== null ? Math.abs(meilleurMemorise - cible) : Infinity;
-  if(ecart < ecartMemo) {
-    meilleurMemorise = dernierRes;
-    const btn = document.getElementById('btn-memoriser');
-    if(btn) {
-      btn.textContent = `📌 ${dernierRes} (à ${ecart})`;
-      btn.style.color = '#6ad450';
-      setTimeout(() => { btn.style.color = ''; btn.textContent = '📌 Mémoriser'; }, 2000);
-    }
-    renderEtapes(); // Mettre à jour l'affichage du mémo
-  }
-}
-
-function sauvegarderPartie(cible, meilleur, exact) {
-  partieSauvegardee = true;
-  // Sauvegarder dans l'historique global
-  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
-  const num = (hist[0]?.num || 0) + 1;
-  hist.unshift({num, cible, meilleur, exact, date: getToday()});
-  if(hist.length > 100) hist.pop();
-  localStorage.setItem('ceb_hist', JSON.stringify(hist));
-  // Avancer au prochain tirage du jour
-  const jourData = getJourData();
-  jourData.parties.push({cible, meilleur, exact, num});
-  jourData.current++;
-  saveJourData(jourData);
-  // Mettre à jour le bouton
-  const btn = document.getElementById('btn-nouveau');
-  if(btn) {
-    btn.textContent = `↺ Partie ${jourData.current + 1}`;
-    btn.style.display = '';
-  }
-  const btnMem = document.getElementById('btn-memoriser');
-  if(btnMem) { btnMem.style.display = 'none'; btnMem.textContent = '📌 Mémoriser'; }
-  const btnClear = document.getElementById('btn-clear');
-  if(btnClear) btnClear.style.display = 'none';
-  afficherHistorique();
-}
-
-function afficherHistorique() {
-  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
-  const today = getToday();
-  const displayHist = hist.filter(h => h.date === today);
-  const wrap = document.getElementById('historique-wrap');
-  const body = document.getElementById('historique-body');
-  wrap.style.display = displayHist.length ? 'block' : 'none';
-  // Date dans le titre
-  const titre = document.getElementById('hist-titre');
-  if(titre) titre.textContent = `Parties du jour · ${today}`;
-  body.innerHTML = displayHist.map(h => {
-    const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
-    const cls = h.exact ? 'hist-exact' : (ecart !== null && ecart <= 10) ? 'hist-approche' : 'hist-echec';
-    const gauche = h.exact ? `#${h.num} · Le compte est bon !` : (h.meilleur === null ? `#${h.num} · Abandon` : `#${h.num} · cible ${h.cible}`);
-    const droite = h.exact ? '🎯' : (h.meilleur === null ? '—' : `${ecart}`);
-    return `<div class="hist-row">
-      <span class="${cls}">${gauche}</span>
-      <span class="${cls}" style="font-weight:700">${droite}</span>
-    </div>`;
-  }).join('');
-}
-
 // ── Init
 // Précharger les sons dès que la page est chargée
 document.addEventListener('DOMContentLoaded', () => {
   // Préchargement silencieux — les sons seront prêts au premier clic
 });
-
-
 
 // ── Init — attendre le clic sur Nouveau
 document.getElementById('cible').innerHTML =
