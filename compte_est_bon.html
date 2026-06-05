@@ -354,7 +354,12 @@ function seedFromDate(d) {
 
 function getToday() {
   const d = new Date();
-  return d.toLocaleDateString('fr');
+  // La journée commence à 3h du matin
+  if(d.getHours() < 3) d.setDate(d.getDate() - 1);
+  const j = String(d.getDate()).padStart(2,'0');
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const a = d.getFullYear();
+  return `${j}/${m}/${a}`;
 }
 
 // Génère le tirage N du jour (0-based) de façon déterministe
@@ -464,7 +469,7 @@ document.addEventListener('click', function debloquerRouleaux() {
 function playRouleauSpin(idx, dureeMs) {
   const snd = sndRouleaux[idx];
   snd.currentTime = 0;
-  snd.volume = 0.9;
+  snd.volume = muted ? 0 : 0.9;
   const p = snd.play();
   if(p) p.catch(()=>{});
   // Fade out à la fin
@@ -568,13 +573,14 @@ function startMusique() {
   stopMusique();
   const idx = Math.floor(Math.random() * sndMusiques.length);
   bgMusic = sndMusiques[idx].cloneNode();
-  bgMusic.volume = 0.55;
+  bgMusic.volume = muted ? 0 : 0.55;
   bgMusic.play().catch(()=>{});
 }
 
-let muted = false;
+let muted = localStorage.getItem('ceb_muted') === '1';
 function toggleMute() {
   muted = !muted;
+  localStorage.setItem('ceb_muted', muted ? '1' : '0');
   document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
   if(muted) stopMusique();
   sndRouleaux.forEach(a => a.volume = muted ? 0 : 0.9);
@@ -1059,12 +1065,13 @@ function partager() {
   const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
   const today = getToday();
   const todayHist = hist.filter(h => h.date === today).slice().reverse();
-  if(!todayHist.length) return;
+  const toShare = todayHist.length ? todayHist : hist.slice(0,5).reverse();
+  if(!toShare.length) { alert('Aucune partie à partager.'); return; }
 
   // Générer une image canvas
   const W = 480, PAD = 28;
   const lineH = 44;
-  const H = 90 + todayHist.length * lineH + 30;
+  const H = 90 + toShare.length * lineH + (todayHist.length > 1 ? 68 : 30);
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -1093,26 +1100,46 @@ function partager() {
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(PAD, 76); ctx.lineTo(W-PAD, 76); ctx.stroke();
 
+  // Calcul moyenne
+  const aDesAbandons2 = toShare.some(h => h.meilleur === null);
+  const moyEcartCanvas = (!aDesAbandons2 && toShare.length > 0)
+    ? Math.round(toShare.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / todayHist.length)
+    : null;
+
   // Parties
-  todayHist.forEach((h, i) => {
+  toShare.forEach((h, i) => {
     const y = 76 + i * lineH + 30;
     const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
     const exact = h.exact;
     const label = exact ? 'LE COMPTE EST BON !' : (h.meilleur === null ? 'Abandon' : `À ${ecart} de la cible`);
     const color = exact ? '#6ad450' : (ecart !== null && ecart <= 10) ? '#f0b060' : '#e87070';
 
-    // Numéro et cible
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.font = '13px monospace';
     ctx.textAlign = 'left';
     ctx.fillText(`#${h.num}  Cible ${h.cible}`, PAD, y);
 
-    // Résultat
     ctx.fillStyle = color;
     ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'right';
     ctx.fillText(label, W - PAD, y);
   });
+
+  // Ligne moyenne
+  if(moyEcartCanvas !== null && toShare.length > 1) {
+    const yMoy = 76 + toShare.length * lineH + 28;
+    ctx.strokeStyle = 'rgba(200,160,48,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD, yMoy - 10); ctx.lineTo(W-PAD, yMoy - 10); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('MOYENNE DES ÉCARTS', PAD, yMoy + 8);
+    ctx.fillStyle = '#e8c84a';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(moyEcartCanvas === 0 ? '🎯' : String(moyEcartCanvas), W - PAD, yMoy + 8);
+  }
 
   // URL
   ctx.fillStyle = 'rgba(255,255,255,0.25)';
@@ -1199,13 +1226,22 @@ function sauvegarderPartie(cible, meilleur, exact) {
 function afficherHistorique() {
   const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
   const today = getToday();
-  const displayHist = hist.filter(h => h.date === today);
+  const todayGames = hist.filter(h => h.date === today);
+  const displayHist = todayGames.length ? todayGames : hist.slice(0, 5);
   const wrap = document.getElementById('historique-wrap');
   const body = document.getElementById('historique-body');
   wrap.style.display = displayHist.length ? 'block' : 'none';
   // Date dans le titre
   const titre = document.getElementById('hist-titre');
-  if(titre) titre.textContent = `Parties du jour · ${today}`;
+  if(titre) titre.textContent = todayGames.length 
+    ? `Parties du jour · ${today}` 
+    : `Dernières parties`;
+  // Calcul de la moyenne des écarts (sans les abandons)
+  const aDesAbandons = displayHist.some(h => h.meilleur === null);
+  const moyEcart = (!aDesAbandons && displayHist.length > 0)
+    ? Math.round(displayHist.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / displayHist.length)
+    : null;
+
   body.innerHTML = displayHist.map(h => {
     const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
     const cls = h.exact ? 'hist-exact' : (ecart !== null && ecart <= 10) ? 'hist-approche' : 'hist-echec';
@@ -1215,7 +1251,11 @@ function afficherHistorique() {
       <span class="${cls}">${gauche}</span>
       <span class="hist-cible">${droite}</span>
     </div>`;
-  }).join('');
+  }).join('') + (moyEcart !== null && displayHist.length > 1 ? `
+    <div class="hist-row" style="border-top:1px solid rgba(200,160,48,.3);margin-top:.2rem">
+      <span style="color:var(--dim);font-size:.65rem;letter-spacing:.08em">MOYENNE DES ÉCARTS</span>
+      <span style="color:var(--tile-yellow);font-weight:700">${moyEcart === 0 ? '🎯' : moyEcart}</span>
+    </div>` : '');
 }
 
 // ── PWA Service Worker
@@ -1236,6 +1276,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Init — attendre le clic sur Nouveau
 document.getElementById('cible').innerHTML =
   '<div class="rouleau" style="color:rgba(255,255,255,.25)">0</div>'.repeat(3);
+// Initialiser l'état du son
+if(muted) {
+  document.getElementById('mute-btn').textContent = '🔇';
+  sndRouleaux.forEach(a => a.volume = 0);
+  sndMusiques.forEach(a => a.volume = 0);
+}
 </script>
 </body>
 </html>
