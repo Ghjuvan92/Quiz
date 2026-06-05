@@ -1,12 +1,12 @@
 const CACHE = 'ceb-v1';
 const FILES = [
-  '/Quiz/compte_est_bon.html',
-  '/Quiz/1.mp3',
-  '/Quiz/2.mp3',
-  '/Quiz/3.mp3',
-  '/Quiz/ElevenLabs_clackity_wheel_spin.mp3',
-  '/icon-192.png',
-  '/icon-512.png'
+  'compte_est_bon.html',
+  '1.mp3',
+  '2.mp3',
+  '3.mp3',
+  'ElevenLabs_clackity_wheel_spin.mp3',
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 self.addEventListener('install', e => {
