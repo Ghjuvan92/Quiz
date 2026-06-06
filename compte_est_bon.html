@@ -401,10 +401,13 @@ function getJourData() {
   const today = getToday();
   const raw = localStorage.getItem('ceb_jour');
   if(raw) {
-    const data = JSON.parse(raw);
-    if(data.date === today) return data;
+    try {
+      const data = JSON.parse(raw);
+      // Vérifier que la date est exactement au bon format ET correspond à aujourd'hui
+      if(data.date === today && /^\d{2}\/\d{2}\/\d{4}$/.test(data.date)) return data;
+    } catch(e) {}
   }
-  // Nouveau jour
+  // Nouveau jour ou ancien format — repart à zéro
   const data = {date: today, parties: [], current: 0};
   localStorage.setItem('ceb_jour', JSON.stringify(data));
   return data;
@@ -439,6 +442,7 @@ document.addEventListener('click', () => { if(AC.state === 'suspended') AC.resum
 function playTick() {} // inutilisé
 
 function playErr() {
+  if(muted) return;
   const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
   o.connect(g); g.connect(AC.destination);
   o.type = 'sine'; o.frequency.setValueAtTime(200, t);
@@ -500,6 +504,7 @@ function playRouleauSpin(idx, dureeMs) {
 function playRouleau() {} // tics individuels supprimés
 
 function playTuile() {
+  if(muted) return;
   const t = AC.currentTime;
   const o = AC.createOscillator();
   const g = AC.createGain();
@@ -528,6 +533,7 @@ function playOp() {
 }
 
 function playExact() {
+  if(muted) return;
   // Arpège festif : 4 notes + accord final
   const t = AC.currentTime;
   const notes = [[0, 523], [0.1, 659], [0.2, 784], [0.32, 1047]];
@@ -557,6 +563,7 @@ function playExact() {
 }
 
 function playBuzzer() {
+  if(muted) return;
   // Simple cloche douce — "ding" — comme à l'émission
   const t = AC.currentTime;
   const o = AC.createOscillator();
