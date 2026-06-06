@@ -1213,16 +1213,16 @@ function memoriser() {
 
 function sauvegarderPartie(cible, meilleur, exact) {
   partieSauvegardee = true;
-  // Sauvegarder dans l'historique global
   const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
-  const num = (hist[0]?.num || 0) + 1;
+  // Avancer au prochain tirage du jour D'ABORD pour avoir le bon numéro
+  const jourData = getJourData();
+  jourData.current++;
+  saveJourData(jourData);
+  const num = jourData.current; // numéro basé sur le compteur du jour
   hist.unshift({num, cible, meilleur, exact, date: getToday()});
   if(hist.length > 100) hist.pop();
   localStorage.setItem('ceb_hist', JSON.stringify(hist));
-  // Avancer au prochain tirage du jour
-  const jourData = getJourData();
   jourData.parties.push({cible, meilleur, exact, num});
-  jourData.current++;
   saveJourData(jourData);
   // Mettre à jour le bouton
   const btn = document.getElementById('btn-nouveau');
