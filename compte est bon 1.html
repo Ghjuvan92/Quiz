@@ -428,7 +428,6 @@ let opSelection = null; // opérateur sélectionné
 let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
 let valeursDispos = [];
 let partieSauvegardee = false;
-let partieTerminee = false; // bloque toute interaction après Solution
 let meilleurMemorise = null; // résultat mémorisé par le joueur // [{id,val}] état courant
 
 const TIMER_DURATION = 45;
@@ -626,7 +625,6 @@ function startTimer() {
     if(timerSecondes <= 0) {
       stopTimer();
       stopMusique();
-      partieTerminee = true;
       playBuzzer();
       // Sauvegarder avec le meilleur résultat atteint
       let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
@@ -665,7 +663,6 @@ function tirer() {
   selection = null;
   opSelection = null;
   partieSauvegardee = false;
-  partieTerminee = false;
   meilleurMemorise = null;
   document.getElementById('btn-nouveau').style.display = 'none';
   document.getElementById('btn-memoriser').style.display = 'none';
@@ -819,8 +816,6 @@ function renderPlaques() {
 function renderOps() {
   document.querySelectorAll('.op-btn').forEach(b=>{
     b.classList.toggle('selected', b.dataset.op===opSelection);
-    b.style.pointerEvents = partieTerminee ? 'none' : '';
-    b.style.opacity = partieTerminee ? '0.35' : '';
   });
 }
 
@@ -881,7 +876,6 @@ function showMsg(txt) {
 }
 
 function clicPlaque(id, val) {
-  if(partieTerminee) return;
   if(!selection){
     selection = {id, val};
     playTuile();
@@ -970,7 +964,6 @@ function demanderSolution() {
   // 1. Chrono et musique s'arrêtent
   stopTimer();
   stopMusique();
-  partieTerminee = true;
 
   // 2. Sauvegarde
   const dejaSauve = document.getElementById('rc').textContent.includes('COMPTE EST BON');
