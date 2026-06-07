@@ -428,6 +428,7 @@ let opSelection = null; // opérateur sélectionné
 let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
 let valeursDispos = [];
 let partieSauvegardee = false;
+let partieTerminee = false; // bloque toute interaction après Solution
 let meilleurMemorise = null; // résultat mémorisé par le joueur // [{id,val}] état courant
 
 const TIMER_DURATION = 45;
@@ -625,6 +626,7 @@ function startTimer() {
     if(timerSecondes <= 0) {
       stopTimer();
       stopMusique();
+      partieTerminee = true;
       playBuzzer();
       // Sauvegarder avec le meilleur résultat atteint
       let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
@@ -663,6 +665,7 @@ function tirer() {
   selection = null;
   opSelection = null;
   partieSauvegardee = false;
+  partieTerminee = false;
   meilleurMemorise = null;
   document.getElementById('btn-nouveau').style.display = 'none';
   document.getElementById('btn-memoriser').style.display = 'none';
@@ -816,6 +819,8 @@ function renderPlaques() {
 function renderOps() {
   document.querySelectorAll('.op-btn').forEach(b=>{
     b.classList.toggle('selected', b.dataset.op===opSelection);
+    b.style.pointerEvents = partieTerminee ? 'none' : '';
+    b.style.opacity = partieTerminee ? '0.35' : '';
   });
 }
 
@@ -876,6 +881,7 @@ function showMsg(txt) {
 }
 
 function clicPlaque(id, val) {
+  if(partieTerminee) return;
   if(!selection){
     selection = {id, val};
     playTuile();
@@ -961,8 +967,14 @@ function tagSolExpr(expr){
 }
 
 function demanderSolution() {
+  // 1. Chrono et musique s'arrêtent
   stopTimer();
   stopMusique();
+<<<<<<< HEAD
+  partieTerminee = true;
+
+  // 2. Sauvegarde
+=======
   // Bloquer toutes les interactions
   valeursDispos = [];
   selection = null;
@@ -975,10 +987,10 @@ function demanderSolution() {
   if(btnClear) btnClear.style.display = 'none';
   if(btnMem) btnMem.style.display = 'none';
   // Sauvegarder uniquement si pas déjà sauvegardé (pas EXACT)
+>>>>>>> 91ce85373b947e6d952672fea924cd42e31ebbc3
   const dejaSauve = document.getElementById('rc').textContent.includes('COMPTE EST BON');
   if(!dejaSauve && !partieSauvegardee) {
     let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
-    // Garder le meilleur entre le dernier résultat et le mémorisé
     if(meilleurMemorise !== null) {
       if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible))
         meilleur = meilleurMemorise;
@@ -986,11 +998,26 @@ function demanderSolution() {
     if(meilleur !== null) {
       sauvegarderPartie(cible, meilleur, meilleur===cible);
     } else {
-      // Aucun calcul — on sauvegarde avec le meilleur du solver comme référence
-      const res0 = solver(plaques.map(p=>p.val), cible);
-      sauvegarderPartie(cible, res0.best, false);
+      sauvegarderPartie(cible, null, false);
     }
   }
+
+  // 3. Clear et Mémoriser disparaissent
+  document.getElementById('btn-clear').style.display = 'none';
+  document.getElementById('btn-memoriser').style.display = 'none';
+
+  // 4. Effacer inactif
+  const btnEffacer = document.querySelector('.btn-action[onclick="effacer()"]');
+  if(btnEffacer) { btnEffacer.style.opacity = '.35'; btnEffacer.style.pointerEvents = 'none'; }
+
+  // 5. Tuiles et opérateurs bloqués
+  valeursDispos = [];
+  selection = null;
+  opSelection = null;
+  renderPlaques();
+  renderOps();
+
+  // 6. Solution affichée
   document.getElementById('solution-wrap').classList.remove('on');
   const nums = plaques.map(p=>p.val);
   const res = solver(nums, cible);
@@ -1004,6 +1031,14 @@ function demanderSolution() {
       `<div class="solution-score">Aucune solution exacte pour ${cible}</div>`;
   }
   document.getElementById('solution-wrap').classList.add('on');
+
+  // 7. Seul "Partie suivante" reste actif
+  const btnSuiv = document.getElementById('btn-nouveau');
+  if(btnSuiv) {
+    const jd = getJourData();
+    btnSuiv.textContent = `↺ Partie ${jd.current + 1}`;
+    btnSuiv.style.display = '';
+  }
 }
 
 // Filtre les étapes pour ne garder que celles qui contribuent au résultat final
