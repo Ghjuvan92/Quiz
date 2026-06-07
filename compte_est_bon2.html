@@ -399,20 +399,22 @@ function tirageJour(n) {
 // ── Gestion des parties du jour
 function getJourData() {
   const today = getToday();
-  // Clé unique par jour — garantit un reset propre chaque jour
-  const key = 'ceb_jour_' + today.replace(/\//g, '');
-  const raw = localStorage.getItem(key);
+  const raw = localStorage.getItem('ceb_jour');
   if(raw) {
-    try { return JSON.parse(raw); } catch(e) {}
+    try {
+      const data = JSON.parse(raw);
+      // Vérifier que la date est exactement au bon format ET correspond à aujourd'hui
+      if(data.date === today && /^\d{2}\/\d{2}\/\d{4}$/.test(data.date)) return data;
+    } catch(e) {}
   }
+  // Nouveau jour ou ancien format — repart à zéro
   const data = {date: today, parties: [], current: 0};
-  localStorage.setItem(key, JSON.stringify(data));
+  localStorage.setItem('ceb_jour', JSON.stringify(data));
   return data;
 }
 
 function saveJourData(data) {
-  const key = 'ceb_jour_' + data.date.replace(/\//g, '');
-  localStorage.setItem(key, JSON.stringify(data));
+  localStorage.setItem('ceb_jour', JSON.stringify(data));
 }
 
 function getNumeroPartie() {
