@@ -963,6 +963,17 @@ function tagSolExpr(expr){
 function demanderSolution() {
   stopTimer();
   stopMusique();
+  // Bloquer toutes les interactions
+  valeursDispos = [];
+  selection = null;
+  opSelection = null;
+  renderPlaques();
+  renderOps();
+  // Cacher Clear et Mémoriser
+  const btnClear = document.getElementById('btn-clear');
+  const btnMem = document.getElementById('btn-memoriser');
+  if(btnClear) btnClear.style.display = 'none';
+  if(btnMem) btnMem.style.display = 'none';
   // Sauvegarder uniquement si pas déjà sauvegardé (pas EXACT)
   const dejaSauve = document.getElementById('rc').textContent.includes('COMPTE EST BON');
   if(!dejaSauve && !partieSauvegardee) {
