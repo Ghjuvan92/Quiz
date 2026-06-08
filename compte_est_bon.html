@@ -670,6 +670,9 @@ function tirer() {
   partieSauvegardee = false;
   partieTerminee = false;
   meilleurMemorise = null;
+  // Réactiver Effacer
+  const btnEff = document.querySelector('.btn-action[onclick="effacer()"]');
+  if(btnEff) { btnEff.style.opacity=''; btnEff.style.pointerEvents=''; }
   // Cacher Solution pendant la partie
   const bsol = document.getElementById('btn-solution');
   if(bsol) { bsol.style.display='none'; bsol.style.opacity=''; bsol.style.pointerEvents=''; }
