@@ -1118,10 +1118,8 @@ document.querySelectorAll('.op-btn').forEach(b=>{
 
 // ── Historique
 function partager() {
-  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
-  const today = getToday();
-  const todayHist = hist.filter(h => h.date === today).slice().reverse();
-  const toShare = todayHist.length ? todayHist : hist.slice(0,5).reverse();
+  const jourData = getJourData();
+  const toShare = [...jourData.parties].reverse();
   if(!toShare.length) { alert('Aucune partie à partager.'); return; }
 
   // Générer une image canvas
@@ -1255,15 +1253,9 @@ function memoriser() {
 
 function sauvegarderPartie(cible, meilleur, exact) {
   partieSauvegardee = true;
-  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
-  // Avancer au prochain tirage du jour D'ABORD pour avoir le bon numéro
   const jourData = getJourData();
   jourData.current++;
-  saveJourData(jourData);
-  const num = jourData.current; // numéro basé sur le compteur du jour
-  hist.unshift({num, cible, meilleur, exact, date: getToday()});
-  if(hist.length > 100) hist.pop();
-  localStorage.setItem('ceb_hist', JSON.stringify(hist));
+  const num = jourData.current;
   jourData.parties.push({cible, meilleur, exact, num});
   saveJourData(jourData);
   // Mettre à jour le bouton
@@ -1280,16 +1272,14 @@ function sauvegarderPartie(cible, meilleur, exact) {
 }
 
 function afficherHistorique() {
-  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
+  const jourData = getJourData();
+  const displayHist = [...jourData.parties].reverse();
   const today = getToday();
-  const todayGames = hist.filter(h => h.date === today);
-  const displayHist = todayGames.length ? todayGames : hist.slice(0, 5);
   const wrap = document.getElementById('historique-wrap');
   const body = document.getElementById('historique-body');
   wrap.style.display = displayHist.length ? 'block' : 'none';
-  // Date dans le titre
   const titre = document.getElementById('hist-titre');
-  if(titre) titre.innerHTML = `<span>${todayGames.length ? `Parties du jour · ${today}` : 'Dernières parties'}</span><span style="letter-spacing:0">Écart</span>`;
+  if(titre) titre.innerHTML = `<span>Parties du jour · ${today}</span><span style="letter-spacing:0">Écart</span>`;
   // Calcul de la moyenne des écarts (sans les abandons)
   const partiesJouees = displayHist.filter(h => h.meilleur !== null);
   const aDesAbandons = displayHist.some(h => h.meilleur === null);
