@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Compte est Bon</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c8a030">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Compte est Bon">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&family=Caveat:wght@500&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1a0e;
+  --bg2:#252510;
+  --green-dark:#2d3a1a;
+  --green-mid:#3d4f22;
+  --tile-yellow:#e8c84a;
+  --tile-beige:#d4b860;
+  --tile-grande:#c8a030;
+  --segment:#f0e060;
+  --segment-dim:#2a2808;
+  --red:#c83030;
+  --white:#f0ece0;
+  --dim:rgba(240,236,224,.4);
+  --r:6px;--rs:4px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:.75rem .75rem 2rem;
+  background:var(--bg)}
+
+.nav{width:100%;max-width:420px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.back{font-size:.8rem;color:var(--dim);text-decoration:none}.back:hover{color:var(--white)}
+.hdr{flex:1;text-align:center}
+.hdr h1{font-family:'Share Tech Mono',monospace;font-size:1.1rem;font-weight:400;
+  letter-spacing:.12em;text-transform:uppercase;color:#c8956a}
+.hdr h1 em{font-style:normal;color:#ffffff}
+
+.panel{width:100%;max-width:420px;display:flex;flex-direction:column;gap:.65rem;
+  background:#0e0e08;
+  border-radius:20px;
+  padding:.75rem;
+  border:3px solid #6a3c18;
+  box-shadow:0 0 0 1px #e8b888,0 0 0 3px #6a3c18,0 12px 40px rgba(0,0,0,.6),
+    inset 0 2px 4px rgba(255,200,120,.06)}
+
+/* CIBLE — panneau d'affichage 7-segments */
+.cible-wrap{background:#0a0a04;border:2px solid #3a3a18;border-radius:var(--r);
+  padding:.5rem .5rem .4rem;text-align:center;
+  box-shadow:0 0 20px rgba(240,224,96,.08),inset 0 2px 8px rgba(0,0,0,.6)}
+.cible-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.25em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
+.cible-num{display:flex;justify-content:center;align-items:center;gap:6px;padding:.3rem 0}
+.rouleau{
+  width:58px;height:80px;
+  background:linear-gradient(180deg,#3a2e1e 0%,#2a1e0e 48%,#1a1208 50%,#2a1e0e 100%);
+  border:2px solid #5a4020;
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Chakra Petch',monospace;font-size:3rem;font-weight:700;
+  color:#e8c878;
+  letter-spacing:-.02em;
+  box-shadow:inset 0 1px 3px rgba(255,255,255,.1),
+             inset 0 -2px 4px rgba(0,0,0,.6),
+             0 4px 8px rgba(0,0,0,.6);
+  position:relative;overflow:hidden;
+}
+/* Ligne centrale split-flap — trait noir + reflet blanc */
+.rouleau::after{
+  content:'';position:absolute;
+  left:0;right:0;top:50%;
+  width:100%;height:1px;
+  background:rgba(0,0,0,.7);
+  border-bottom:1px solid rgba(255,255,255,.15);
+  z-index:2;
+}
+/* Reflet haut */
+.rouleau::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:45%;
+  background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);
+  z-index:1;pointer-events:none;
+}
+
+/* PLAQUES — style tuiles TV */
+.plaques{
+  display:flex;gap:4px;justify-content:center;align-items:flex-end;
+  flex-wrap:nowrap;
+  padding:8px 10px 0 10px;
+  width:100%;box-sizing:border-box;overflow:hidden;
+  min-height:62px;
+  background:
+    linear-gradient(180deg,#8b5e2a 0%,#a06830 30%,#7a4e20 60%,#5c3a18 100%);
+  border-top:2px solid #c4883a;
+  border-left:2px solid #5c3a18;
+  border-right:2px solid #5c3a18;
+  border-bottom:6px solid #3a2008;
+  border-radius:3px;
+  box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,200,80,.2);}
+.plaque{
+  width:min(62px, calc((min(100vw, 420px) - 80px) / 6));height:46px;
+  border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Impact','Arial Black',sans-serif;
+  font-size:1.85rem;font-weight:900;letter-spacing:0px;
+  background:#161616;color:#e8e8e8;
+  border:1px solid #000;
+  box-shadow:0 3px 0 #000000,0 3px 5px rgba(0,0,0,.6);
+  padding-bottom:3px;
+  cursor:pointer;transition:transform .1s ease,box-shadow .1s ease;
+  user-select:none;position:relative;flex-shrink:0;}
+.plaque.petite{background:#161616;color:#e8e8e8;}
+.plaque.grande{background:#161616;color:#e8e8e8;border-color:#3a3a3a;}
+.plaque[data-len="2"]{letter-spacing:0px;}
+.plaque[data-len="3"]{letter-spacing:0px;padding-bottom:2px;}
+.plaque.selected{
+  background:#e8c84a !important;
+  color:#1a1400 !important;
+  transform:translateY(-5px);
+  box-shadow:0 9px 0 #8a7010,0 9px 14px rgba(0,0,0,.7);
+  border-color:#c8a820;
+}
+.plaque.used-in-step{opacity:.15;box-shadow:none;transform:translateY(2px);pointer-events:none;}
+.plaque:not([disabled]):hover{transform:translateY(-2px);
+  box-shadow:0 5px 0 #000000,0 5px 8px rgba(0,0,0,.5);}
+
+/* Plaque fantôme (utilisée) */
+.plaque-ghost{width:min(62px, calc((min(100vw, 420px) - 80px) / 6));height:46px;border-radius:3px;
+  background:rgba(0,0,0,.2);
+  border:1px dashed rgba(255,255,255,.1)}
+/* Plaque utilisée dans étapes : encadrée */
+.plaque.used-in-step{
+  outline:2.5px solid var(--tile-yellow);
+  opacity:.55}
+
+/* OPÉRATEURS */
+.ops{display:flex;gap:6px;justify-content:center}
+.op-btn{width:62px;height:62px;border-radius:10px;
+  border:1px solid #6a3808;
+  border-top:1px solid #e0b070;
+  background:linear-gradient(160deg,#c8956a 0%,#a07040 50%,#8a5828 100%);
+  font-family:'Share Tech Mono',monospace;font-size:1.5rem;
+  color:#1a0e00;cursor:pointer;transition:all .12s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 0 #4a2808,0 5px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,140,.3)}
+.op-btn.selected{
+  background:linear-gradient(160deg,#f8f8f8 0%,#d0d0d0 100%);
+  border-color:#aaa;border-top-color:#fff;
+  color:#000;
+  transform:translateY(2px);
+  box-shadow:0 1px 0 #888,inset 0 2px 4px rgba(0,0,0,.2)}
+.op-btn:hover:not(.selected){background:linear-gradient(160deg,#d8a578,#b07848);color:#0a0600}
+
+/* ÉTAPES */
+.etapes-wrap{
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
+    linear-gradient(160deg,#2d6040 0%,#245030 40%,#1e4028 70%,#1a3820 100%);
+  border:2px solid #1a3020;
+  border-radius:6px;
+  min-height:56px;overflow:hidden;
+  box-shadow:inset 0 2px 12px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.3);
+  position:relative}
+.etapes-wrap::before{content:'';position:absolute;inset:0;
+  border:3px solid rgba(255,255,255,.04);border-radius:4px;pointer-events:none}
+.etapes-inner{padding:.5rem .75rem .6rem}
+.num-orig{
+  display:inline-block;
+  background:#000000;
+  color:#ffffff;
+  border:1.5px solid #666;
+  border-radius:3px;
+  padding:2px 6px 0px 6px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.85em;
+  font-weight:400;
+  vertical-align:middle;
+  line-height:1.5;
+  position:relative;top:-1px;
+}
+.etape-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.08rem 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  font-family:'Caveat',cursive;font-size:1.3rem;
+  color:rgba(255,255,255,.9);letter-spacing:.02em;line-height:1.6;
+  text-shadow:0 0 8px rgba(255,255,255,.12),1px 1px 2px rgba(0,0,0,.4)}
+.etape-row:last-child{border-bottom:none}
+.etape-del{background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.2);font-size:.75rem;padding:0 .3rem;line-height:1;
+  font-family:'Share Tech Mono',monospace}
+.etape-del:hover{color:rgba(255,100,100,.6)}
+
+/* RÉSULTAT */
+.resultat-courant{font-size:.75rem;text-align:center;
+  font-family:'Share Tech Mono',monospace;color:var(--dim);min-height:1.1rem}
+.resultat-courant.exact{color:#ffffff;font-size:.9rem;
+  font-family:'Caveat',cursive;}
+.resultat-courant.err{color:var(--red);font-size:.8rem}
+
+/* ACTIONS */
+.actions{display:flex;gap:6px}
+.btn-action{flex:1;padding:.55rem .4rem;border-radius:var(--rs);
+  border:1px solid rgba(240,236,224,.2);
+  background:rgba(240,236,224,.06);
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  letter-spacing:.05em;
+  color:rgba(240,236,224,.75);cursor:pointer;transition:all .16s;text-align:center}
+.btn-action:hover{background:rgba(240,236,224,.14);color:var(--white)}
+.btn-action.primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn-action.primary:hover{background:#a82020}
+
+/* SOLUTION */
+/* HISTORIQUE */
+.historique-wrap{background:#0e0e06;border:1px solid #3a3a18;border-radius:var(--r);
+  overflow:hidden;margin-top:.2rem}
+.historique-titre{font-family:'Share Tech Mono',monospace;font-size:.55rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--tile-yellow);
+  padding:.45rem .65rem .2rem}
+.hist-header{display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);
+  padding:.1rem .65rem .2rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.hist-row{display:flex;justify-content:space-between;align-items:center;
+  padding:.2rem .65rem;border-top:1px solid rgba(255,255,255,.05);
+  font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--white)}
+.share-btn{background:none;border:1px solid rgba(240,236,224,.2);border-radius:6px;
+  color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  padding:.25rem .6rem;cursor:pointer;transition:all .15s;width:100%;margin-top:.3rem;
+  letter-spacing:.08em}
+.share-btn:hover{background:rgba(240,236,224,.1);color:var(--white)}
+.hist-cible{color:var(--dim)}
+.hist-exact{color:#6ad450}
+.hist-approche{color:#f0b060}
+.hist-echec{color:#e87070}
+
+.solution-wrap{background:#0e0e06;border:1px solid #3a3a18;
+  border-radius:var(--r);display:none;overflow:hidden}
+.solution-wrap.on{display:block;animation:slin .3s ease}
+@keyframes slin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.solution-inner{padding:.5rem .65rem .6rem}
+.solution-title{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tile-yellow);margin-bottom:.35rem}
+.solution-line{font-family:'Share Tech Mono',monospace;font-size:.82rem;
+  color:var(--white);padding:.14rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.solution-line:last-child{border-bottom:none}
+.solution-ligne-res{color:var(--white)}
+.solution-score{font-size:.72rem;color:var(--dim);margin-top:.35rem;
+  font-family:'Share Tech Mono',monospace}
+
+/* TIMER */
+.timer-wrap{width:100%;height:5px;background:#1a1a08;border-radius:2px;overflow:hidden;
+  border:1px solid #3a3a18}
+.timer-bar{height:100%;background:var(--segment);border-radius:2px;
+  transition:width .9s linear;width:100%;
+  box-shadow:0 0 6px rgba(240,224,96,.4)}
+.timer-bar.urgent{background:var(--red);box-shadow:0 0 8px rgba(200,48,48,.5)}
+
+
+/* intermédiaires */
+#plaques-inter{background:transparent;border:none;padding:.25rem 0;min-height:0}
+.plaque.inter{
+  outline:2.5px solid #d8d0c0;
+  box-shadow:0 3px 0 #000000,0 0 6px rgba(216,208,192,.25);
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="back"></div>
+  <div class="hdr"><h1>Le <em>Compte est Bon</em></h1></div>
+</div>
+
+<div class="panel">
+
+  <!-- CIBLE -->
+  <div class="cible-wrap">
+    <div class="cible-num" id="cible">—</div>
+  </div>
+
+  <!-- TIMER -->
+  <div>
+    <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+  </div>
+
+  <!-- PLAQUES de départ -->
+  <div>
+    <div class="plaques" id="plaques-orig"></div>
+  </div>
+
+  <!-- OPÉRATEURS -->
+  <div class="ops" id="ops">
+    <button class="op-btn" data-op="+">+</button>
+    <button class="op-btn" data-op="−">−</button>
+    <button class="op-btn" data-op="×">×</button>
+    <button class="op-btn" data-op="÷">÷</button>
+  </div>
+
+  <!-- RÉSULTATS INTERMÉDIAIRES (sous les signes) -->
+  <div class="plaques" id="plaques-inter" style="justify-content:center;min-height:0"></div>
+
+  <!-- RÉSULTAT COURANT -->
+  <div class="resultat-courant" id="rc"></div>
+
+  <!-- ÉTAPES -->
+  <div class="etapes-wrap">
+    <div class="etapes-inner" id="etapes">
+      <div class="etapes-vide" style="color:rgba(255,255,255,.6);font-family:'Caveat',cursive;font-size:1.1rem;text-align:center;padding:.6rem .5rem;line-height:1.6">
+        Combine les 6 tuiles avec&nbsp;+&nbsp;−&nbsp;×&nbsp;÷<br>pour atteindre la cible en 45 secondes.
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
+    <button class="btn-action" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
+    <button class="btn-action" type="button" id="btn-clear" onclick="clearTout()" style="display:none">✕ Clear</button>
+    <button class="btn-action" type="button" id="btn-memoriser" onclick="memoriser()" style="display:none">📌 Mémoriser</button>
+    <button class="btn-action primary" type="button" id="btn-solution" onclick="demanderSolution()" style="display:none">Solution</button>
+  </div>
+  <div style="text-align:center;margin-top:-.1rem">
+    <button id="mute-btn" onclick="toggleMute()" style="background:none;border:none;
+      font-size:1.1rem;cursor:pointer;opacity:.4;padding:.2rem .6rem;transition:opacity .15s"
+      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='.4'">🔊</button>
+  </div>
+
+  <!-- SOLUTION -->
+  <div class="solution-wrap" id="solution-wrap">
+    <div class="solution-inner" id="solution-inner"></div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="historique-wrap" id="historique-wrap" style="display:none">
+    <div class="historique-titre" id="hist-titre" style="display:flex;justify-content:space-between"><span>Parties du jour</span><span style="letter-spacing:0">Écart</span></div>
+    <div id="historique-body"></div>
+    <div style="padding:.4rem .65rem .55rem">
+      <button class="btn-action" onclick="partager()" id="share-btn" style="width:100%">⬆ Partager</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Tirage
+// Pool officiel : 4 grandes (une chacune) + 20 petites (1-10 en double exemplaire)
+const POOL = [25,50,75,100, 1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
+const shuf = a => [...a].sort(()=>Math.random()-.5);
+
+// ── Générateur déterministe (mulberry32)
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function seedFromDate(d) {
+  // Génère un entier à partir de la date : YYYYMMDD
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+
+function getToday() {
+  const d = new Date();
+  // La journée commence à 3h du matin
+  if(d.getHours() < 3) d.setDate(d.getDate() - 1);
+  const j = String(d.getDate()).padStart(2,'0');
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const a = d.getFullYear();
+  return `${j}/${m}/${a}`;
+}
+
+// Génère le tirage N du jour (0-based) de façon déterministe
+function tirageJour(n) {
+  const d = new Date();
+  const seed = seedFromDate(d) * 1000 + n;
+  const rng = mulberry32(seed);
+  
+  // Mélanger le pool avec ce rng
+  const pool = [...POOL];
+  for(let i = pool.length-1; i > 0; i--) {
+    const j = Math.floor(rng() * (i+1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const tiragePlaques = pool.slice(0, 6);
+  
+  // Cible entre 101 et 999
+  const cibleVal = 101 + Math.floor(rng() * 899);
+  
+  return {plaques: tiragePlaques, cible: cibleVal};
+}
+
+// ── Gestion des parties du jour
+function getJourData() {
+  const today = getToday();
+  // Clé unique par jour — garantit un reset propre chaque jour
+  const key = 'ceb_jour_' + today.replace(/\//g, '');
+  const raw = localStorage.getItem(key);
+  if(raw) {
+    try { return JSON.parse(raw); } catch(e) {}
+  }
+  const data = {date: today, parties: [], current: 0};
+  localStorage.setItem(key, JSON.stringify(data));
+  return data;
+}
+
+function saveJourData(data) {
+  const key = 'ceb_jour_' + data.date.replace(/\//g, '');
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function getNumeroPartie() {
+  const data = getJourData();
+  return data.current + 1; // 1-based pour l'affichage
+}
+
+let plaques = [];      // {val, id, type}
+let cible = 0;
+let disponibles = []; // ids des plaques encore utilisables
+let selection = null; // {idx, val} première plaque sélectionnée
+let opSelection = null; // opérateur sélectionné
+let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
+let valeursDispos = [];
+let partieSauvegardee = false;
+let partieTerminee = false;
+let meilleurMemorise = null; // résultat mémorisé par le joueur // [{id,val}] état courant
+
+const TIMER_DURATION = 45;
+let timerInterval = null;
+let timerSecondes = TIMER_DURATION;
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+// Débloquer l'AudioContext au premier clic (politique navigateur mobile)
+document.addEventListener('click', () => { if(AC.state === 'suspended') AC.resume(); }, {once: false});
+
+function playTick() {} // inutilisé
+
+function playErr() {
+  if(muted) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine'; o.frequency.setValueAtTime(200, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.1, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+  o.start(t); o.stop(t + 0.2);
+}
+
+// ── Système audio MP3 simple
+// Précharger les éléments audio
+const sndMusiques = [new Audio('1.mp3'), new Audio('2.mp3'), new Audio('3.mp3')];
+sndMusiques.forEach(a => a.volume = 0.55);
+let allLoaded = true;
+
+// Son rouleau MP3 — joué une fois par rouleau, durée calée sur l'animation
+// 3 instances dédiées (une par rouleau) pour éviter la latence mobile
+const sndRouleaux = [0,1,2].map(() => {
+  const a = new Audio('ElevenLabs_clackity_wheel_spin.mp3');
+  a.preload = 'auto';
+  a.load();
+  return a;
+});
+
+// Débloquer iOS au premier clic utilisateur (n'importe lequel)
+let rouleauxDebloqués = false;
+document.addEventListener('click', function debloquerRouleaux() {
+  if(rouleauxDebloqués) return;
+  rouleauxDebloqués = true;
+  // Débloquer silencieusement SANS émettre de son
+  sndRouleaux.forEach(a => {
+    a.muted = true;
+    a.play().then(() => {
+      a.pause();
+      a.currentTime = 0;
+      a.muted = false;
+      a.volume = 0.9;
+    }).catch(()=>{});
+  });
+});
+
+function playRouleauSpin(idx, dureeMs) {
+  const snd = sndRouleaux[idx];
+  snd.currentTime = 0;
+  snd.volume = muted ? 0 : 0.9;
+  const p = snd.play();
+  if(p) p.catch(()=>{});
+  // Fade out à la fin
+  setTimeout(() => {
+    let vol = 0.9;
+    const fade = setInterval(() => {
+      vol = Math.max(0, vol - 0.09);
+      try { snd.volume = vol; } catch(e){}
+      if(vol <= 0) { clearInterval(fade); try{snd.pause();}catch(e){} }
+    }, 30);
+  }, Math.max(0, dureeMs - 300));
+}
+
+function playRouleau() {} // tics individuels supprimés
+
+function playTuile() {
+  if(muted) return;
+  const t = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(300, t);
+  o.frequency.exponentialRampToValueAtTime(180, t + 0.06);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.15, t + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  o.start(t); o.stop(t + 0.12);
+}
+
+function playOp() {
+  // Clic léger de touche
+  const t = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(520, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.07, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  o.start(t); o.stop(t + 0.07);
+}
+
+function playExact() {
+  if(muted) return;
+  // Arpège festif : 4 notes + accord final
+  const t = AC.currentTime;
+  const notes = [[0, 523], [0.1, 659], [0.2, 784], [0.32, 1047]];
+  notes.forEach(([delay, freq]) => {
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(freq, t + delay);
+    g.gain.setValueAtTime(0, t + delay);
+    g.gain.linearRampToValueAtTime(0.18, t + delay + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.35);
+    o.start(t + delay); o.stop(t + delay + 0.4);
+  });
+  // Petite réverbération : accord Do majeur en écho
+  [[0.5, 523],[0.5, 659],[0.5, 784]].forEach(([delay, freq]) => {
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t + delay);
+    g.gain.setValueAtTime(0, t + delay);
+    g.gain.linearRampToValueAtTime(0.08, t + delay + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.6);
+    o.start(t + delay); o.stop(t + delay + 0.65);
+  });
+}
+
+function playBuzzer() {
+  if(muted) return;
+  // Simple cloche douce — "ding" — comme à l'émission
+  const t = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine';
+  o.frequency.setValueAtTime(1047, t); // Do5
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.18, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 2.2);
+  o.start(t); o.stop(t + 1.8);
+  // harmonique légère
+  const o2 = AC.createOscillator();
+  const g2 = AC.createGain();
+  o2.connect(g2); g2.connect(AC.destination);
+  o2.type = 'sine';
+  o2.frequency.setValueAtTime(2093, t); // Do6
+  g2.gain.setValueAtTime(0, t);
+  g2.gain.linearRampToValueAtTime(0.06, t + 0.01);
+  g2.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+  o2.start(t); o2.stop(t + 1.2);
+}
+
+// ── Musique de fond
+let bgMusic = null;
+
+function startMusique() {
+  stopMusique();
+  const idx = Math.floor(Math.random() * sndMusiques.length);
+  bgMusic = sndMusiques[idx].cloneNode();
+  bgMusic.volume = muted ? 0 : 0.55;
+  bgMusic.play().catch(()=>{});
+}
+
+let muted = localStorage.getItem('ceb_muted') === '1';
+function toggleMute() {
+  muted = !muted;
+  localStorage.setItem('ceb_muted', muted ? '1' : '0');
+  document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+  if(muted) stopMusique();
+  sndRouleaux.forEach(a => a.volume = muted ? 0 : 0.9);
+  sndMusiques.forEach(a => a.volume = muted ? 0 : 0.55);
+  if(bgMusic) bgMusic.volume = muted ? 0 : 0.55;
+}
+function stopMusique() {
+  if(bgMusic) {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    bgMusic = null;
+  }
+}
+
+function startTimer() {
+  stopTimer();
+  timerSecondes = TIMER_DURATION;
+  updateTimerDisplay();
+  startMusique();
+  timerInterval = setInterval(() => {
+    timerSecondes--;
+    updateTimerDisplay();
+    if(timerSecondes <= 0) {
+      stopTimer();
+      stopMusique();
+      // Afficher Solution seulement maintenant
+      const bsolTimer = document.getElementById('btn-solution');
+      if(bsolTimer) bsolTimer.style.display = '';
+      terminerPartie();
+      playBuzzer();
+      // Sauvegarder avec le meilleur résultat atteint
+      let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
+      // Utiliser le meilleur mémorisé si plus proche
+      if(meilleurMemorise !== null) {
+        if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible))
+          meilleur = meilleurMemorise;
+      }
+      if(meilleur !== null && !partieSauvegardee) sauvegarderPartie(cible, meilleur, meilleur===cible);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  const bar = document.getElementById('timer-bar');
+  const lbl = document.getElementById('timer-label');
+  const pct = (timerSecondes / TIMER_DURATION) * 100;
+  bar.style.width = pct + '%';
+  bar.classList.toggle('urgent', timerSecondes <= 10);
+
+}
+
+function tirer() {
+  const jourData = getJourData();
+  const n = jourData.current;
+  const t = tirageJour(n);
+  const grandesVals = new Set([25,50,75,100]);
+  plaques = t.plaques.map((v,i) => ({val:v, id:i, type: grandesVals.has(v)?'grande':'petite'}));
+  cible = t.cible;
+  valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
+  etapes = [];
+  selection = null;
+  opSelection = null;
+  partieSauvegardee = false;
+  partieTerminee = false;
+  meilleurMemorise = null;
+  // Cacher Solution pendant la partie
+  const bsol = document.getElementById('btn-solution');
+  if(bsol) { bsol.style.display='none'; bsol.style.opacity=''; bsol.style.pointerEvents=''; }
+  document.getElementById('btn-nouveau').style.display = 'none';
+  document.getElementById('btn-memoriser').style.display = 'none';
+  document.getElementById('btn-clear').style.display = 'block';
+  document.getElementById('historique-wrap').style.display = 'none';
+  document.getElementById('solution-wrap').classList.remove('on');
+  document.getElementById('rc').textContent = '';
+  document.getElementById('rc').className = 'resultat-courant';
+  document.getElementById('plaques-inter').innerHTML = '';
+  renderOps();
+  renderEtapes();
+  // Tuiles une par une, puis rouleaux
+  revelerPlaques(plaques, () => {
+    animerCible(String(cible).padStart(3,'0').split(''), () => startTimer());
+  });
+}
+
+function revelerPlaques(plaquesArr, onDone) {
+  const el = document.getElementById('plaques-orig');
+  el.innerHTML = '';
+  plaquesArr.forEach(p => {
+    const g = document.createElement('div');
+    g.className = 'plaque-ghost'; g.id = 'ghost-' + p.id;
+    el.appendChild(g);
+  });
+  const ordre = [...plaquesArr];
+  ordre.forEach((p, idx) => {
+    setTimeout(() => {
+      const ghost = document.getElementById('ghost-' + p.id);
+      const btn = document.createElement('button');
+      btn.className = p.type==='grande' ? 'plaque grande' : 'plaque petite';
+      btn.id = 'plaque-' + p.id;
+      btn.textContent = p.val;
+      btn.dataset.len = String(p.val).length;
+      btn.onclick = () => clicPlaque(p.id, p.val);
+      if(ghost) ghost.replaceWith(btn);
+      playTuile();
+      if(idx === ordre.length - 1) setTimeout(onDone, 600);
+    }, idx * 550);
+  });
+}
+
+function animerCible(digits, onDone) {
+  const el = document.getElementById('cible');
+  el.innerHTML = digits.map((_,i) =>
+    `<div class="rouleau" id="rouleau-${i}">0</div>`
+  ).join('');
+
+  let done = 0;
+  digits.forEach((finalDigit, i) => {
+    const rouleau = document.getElementById(`rouleau-${i}`);
+    const target = parseInt(finalDigit);
+    const delay = i * 500;
+
+    setTimeout(() => {
+      // Calcul de la durée totale pour synchroniser le son
+      const minSteps = 22;
+      const stepsNeeded = minSteps + ((target - (minSteps % 10) + 10) % 10);
+      let estimDur = 0;
+      for(let s=0; s<stepsNeeded; s++){
+        const r = s/stepsNeeded;
+        if(r<0.25) estimDur += 200 - r*4*150;
+        else if(r<0.55) estimDur += 50;
+        else { const tt=(r-0.55)/0.45; estimDur += 50+tt*tt*450; }
+      }
+      playRouleauSpin(i, estimDur);
+
+      // Séquence de vitesses interpolée sur stepsNeeded steps
+      function getSpeed(s) {
+        const ratio = s / stepsNeeded;
+        if(ratio < 0.2) return 180 - ratio * 5 * 130; // 180→50ms
+        if(ratio < 0.65) return 50;                    // vitesse max
+        const t = (ratio - 0.65) / 0.35;
+        return 50 + t * t * 200;                       // 50→250ms max
+      }
+
+      let step = 0;
+      let current = 0;
+      function tick() {
+        rouleau.textContent = current % 10;
+        playRouleau();
+        current++;
+        step++;
+        if(step >= stepsNeeded) {
+          rouleau.textContent = target;
+          done++;
+          if(done === digits.length) onDone();
+          return;
+        }
+        setTimeout(tick, getSpeed(step));
+      }
+      setTimeout(tick, getSpeed(0));
+    }, delay);
+  });
+}
+
+function renderPlaques() {
+  const elOrig  = document.getElementById('plaques-orig');
+  const elInter = document.getElementById('plaques-inter');
+  elInter.innerHTML = '';
+
+  // Plaques originales : toujours toutes affichées, grisées si utilisées
+  const usedOrigIds = new Set(etapes.flatMap(e => e.consumed.filter(id => id < 100)));
+  // mais si une plaque originale a été consommée par une étape ultérieure via id intermédiaire,
+  // on la considère quand même used si elle n'est plus dans valeursDispos
+  const dispos = new Set(valeursDispos.filter(v=>v.id<100).map(v=>v.id));
+
+  // Ne reconstruire les orig que si pas encore initialisées (au tirer)
+  if(elOrig.children.length === 0) {
+    plaques.forEach(p=>{
+      const btn = document.createElement('button');
+      btn.className = p.type==='grande' ? 'plaque grande' : 'plaque petite';
+      btn.id = 'plaque-' + p.id;
+      btn.textContent = p.val;
+      btn.onclick = () => clicPlaque(p.id, p.val);
+      elOrig.appendChild(btn);
+    });
+  }
+
+  // Mettre à jour l'état visuel de chaque plaque originale
+  plaques.forEach(p=>{
+    const btn = document.getElementById('plaque-' + p.id);
+    if(!btn) return;
+    const available = dispos.has(p.id);
+    btn.disabled = !available;
+    btn.style.opacity = available ? '1' : '0.55';
+    btn.style.pointerEvents = available ? '' : 'none';
+    btn.style.background = available
+      ? (p.type==='grande' ? '' : '')
+      : '';
+    btn.style.color = available ? '' : 'rgba(253,246,238,.3)';
+    btn.style.boxShadow = available ? '' : 'none';
+    if(!available) btn.classList.add('used-in-step');
+    else btn.classList.remove('used-in-step');
+    if(selection && selection.id===p.id) btn.classList.add('selected');
+    else btn.classList.remove('selected');
+  });
+
+  // Plaques intermédiaires (résultats calculés)
+  valeursDispos.filter(v=>v.id>=100).forEach(v=>{
+    const btn = document.createElement('button');
+    btn.className = 'plaque petite inter';
+    if(selection && selection.id===v.id) btn.classList.add('selected');
+    btn.textContent = v.val;
+    btn.dataset.len = String(v.val).length;
+    btn.onclick = () => clicPlaque(v.id, v.val);
+    elInter.appendChild(btn);
+  });
+}
+
+function renderOps() {
+  document.querySelectorAll('.op-btn').forEach(b=>{
+    b.classList.toggle('selected', b.dataset.op===opSelection);
+  });
+}
+
+function renderEtapes() {
+  const el = document.getElementById('etapes');
+  // Afficher le mémo en haut à droite si présent
+  const memoHtml = meilleurMemorise !== null
+    ? `<div style="text-align:right;font-family:'Share Tech Mono',monospace;font-size:.7rem;
+        color:rgba(255,255,255,.45);margin-bottom:.3rem;font-style:normal">
+        mémo : ${meilleurMemorise} <span style="color:rgba(255,255,255,.25)">(écart ${Math.abs(meilleurMemorise-cible)})</span>
+       </div>` : '';
+  if(etapes.length===0){
+    el.innerHTML = memoHtml;
+    return;
+  }
+  // Vérifier si on a atteint la cible
+  el.innerHTML = memoHtml + etapes.map((e,i)=>`
+    <div class="etape-row">
+      <span class="etape-expr">${e.expr} <span>= ${e.res}</span></span>
+      <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
+    </div>`).join('');
+  // Afficher Mémoriser uniquement si le dernier résultat est meilleur que le mémo
+  const btnMem = document.getElementById('btn-memoriser');
+  if(btnMem && btnMem.style.display !== undefined) {
+    if(etapes.length > 0) {
+      const dernierRes = etapes[etapes.length-1].res;
+      const ecartDernier = Math.abs(dernierRes - cible);
+      const ecartMemo = meilleurMemorise !== null ? Math.abs(meilleurMemorise - cible) : Infinity;
+      btnMem.style.display = (ecartDernier < ecartMemo) ? 'block' : 'none';
+    } else {
+      btnMem.style.display = 'none';
+    }
+  }
+  const rc = document.getElementById('rc');
+  if(valeursDispos.some(v=>v.val===cible)){
+    rc.textContent='LE COMPTE EST BON !';
+    rc.className='resultat-courant exact';
+    playExact();
+    stopTimer();
+    stopMusique();
+    const bsolExact = document.getElementById('btn-solution');
+    if(bsolExact) bsolExact.style.display = '';
+    terminerPartie();
+    if(!partieSauvegardee) sauvegarderPartie(cible, cible, true);
+  } else {
+    rc.textContent='';
+    rc.className='resultat-courant';
+  }
+}
+
+function showMsg(txt) {
+  const rc = document.getElementById('rc');
+  rc.textContent = txt;
+  rc.className = 'resultat-courant err';
+  playErr();
+  clearTimeout(showMsg._t);
+  showMsg._t = setTimeout(() => {
+    rc.textContent = '';
+    rc.className = 'resultat-courant';
+  }, 2000);
+}
+
+function clicPlaque(id, val) {
+  if(partieTerminee) return;
+  if(!selection){
+    selection = {id, val};
+    playTuile();
+    renderPlaques();
+    return;
+  }
+  if(selection.id===id){
+    selection=null; renderPlaques(); return;
+  }
+  if(!opSelection) return;
+  playTuile();
+  // Appliquer opération
+  const a=selection.val, b=val;
+  let res=null, expr='';
+  // Tag les valeurs originales (id<100)
+  const tagA = selection.id<100 ? `<span class="num-orig">${a}</span>` : `${a}`;
+  const tagB = id<100 ? `<span class="num-orig">${b}</span>` : `${b}`;
+  if(opSelection==='+'){res=a+b;expr=`${tagA} + ${tagB}`;}
+  else if(opSelection==='−'){
+    if(a<b){showMsg('RESULTAT NEGATIF');return;}
+    res=a-b;expr=`${tagA} − ${tagB}`;
+  }
+  else if(opSelection==='×'){res=a*b;expr=`${tagA} × ${tagB}`;}
+  else if(opSelection==='÷'){
+    if(b===0||a%b!==0){showMsg('DIVISION NON ENTIERE');return;}
+    res=a/b;expr=`${tagA} ÷ ${tagB}`;
+  }
+  if(res===0){showMsg('RESULTAT NUL');return;}
+
+  const newId = 100+etapes.length;
+  etapes.push({expr, res, consumed:[selection.id, id], produced:{id:newId, val:res}});
+  // Mettre à jour valeursDispos
+  valeursDispos = valeursDispos.filter(v=>v.id!==selection.id&&v.id!==id);
+  valeursDispos.push({id:newId, val:res});
+  selection=null; opSelection=null;
+  renderPlaques(); renderOps(); renderEtapes();
+}
+
+function supprimerEtape(idx) {
+  // Recalculer à partir de zéro jusqu'à idx-1
+  const garder = etapes.slice(0,idx);
+  etapes = garder;
+  // Reconstruire valeursDispos
+  const consumed = new Set(garder.flatMap(e=>e.consumed));
+  const produced = new Set(garder.map(e=>e.produced.id));
+  valeursDispos = plaques.filter(p=>!consumed.has(p.id)||produced.has(p.id)).map(p=>({id:p.id,val:p.val}));
+  garder.forEach(e=>{ if(!consumed.has(e.produced.id)) valeursDispos.push({id:e.produced.id,val:e.produced.val}); });
+  // Plus simple : reconstruire proprement
+  valeursDispos = [];
+  const usedInKept = new Set(garder.flatMap(e=>e.consumed));
+  const producedInKept = garder.map(e=>e.produced);
+  plaques.forEach(p=>{ if(!usedInKept.has(p.id)) valeursDispos.push({id:p.id,val:p.val}); });
+  producedInKept.forEach(p=>{ if(!usedInKept.has(p.id)) valeursDispos.push({id:p.id,val:p.val}); });
+  selection=null; opSelection=null;
+  renderPlaques(); renderOps(); renderEtapes();
+  if(etapes.length===0){document.getElementById('rc').textContent='';document.getElementById('rc').className='resultat-courant';}
+}
+
+function effacer() {
+  if(etapes.length>0) supprimerEtape(etapes.length-1);
+  else{selection=null;opSelection=null;renderPlaques();renderOps();}
+}
+
+function reset() {
+  document.getElementById('solution-wrap').classList.remove('on');
+  if(AC.state === 'suspended') { AC.resume(); }
+  // Après le premier lancement, changer le bouton
+  const btn = document.getElementById('btn-nouveau');
+  if(btn) { btn.textContent = '↺ Nouveau'; }
+  tirer();
+}
+
+// ── SOLVER (RPN exhaustif)
+// Tag les valeurs de la solution qui sont des plaques originales
+function tagSolExpr(expr){
+  const origVals = plaques.map(p=>p.val);
+  return expr.replace(/\b(\d+)\b/g, (m,n)=>{
+    const v=parseInt(n);
+    const idx=origVals.indexOf(v);
+    if(idx>=0){ origVals.splice(idx,1); return `<span class="num-orig">${v}</span>`; }
+    return m;
+  });
+}
+
+function terminerPartie() {
+  partieTerminee = true;
+  // Effacer inactif
+  const btnEff = document.querySelector('.btn-action[onclick="effacer()"]');
+  if(btnEff) { btnEff.style.opacity='.35'; btnEff.style.pointerEvents='none'; }
+  // Clear et Mémoriser disparaissent, Partie N apparaît
+  const btnClear = document.getElementById('btn-clear');
+  const btnMem = document.getElementById('btn-memoriser');
+  if(btnClear) btnClear.style.display='none';
+  if(btnMem) btnMem.style.display='none';
+  // Afficher Partie N
+  const btnSuiv = document.getElementById('btn-nouveau');
+  if(btnSuiv) {
+    const jd = getJourData();
+    btnSuiv.textContent = `↺ Partie ${jd.current + 1}`;
+    btnSuiv.style.display = '';
+  }
+  // Solution reste active après le chrono
+}
+
+function demanderSolution() {
+  stopTimer();
+  stopMusique();
+  // Sauvegarder uniquement si pas déjà sauvegardé (pas EXACT)
+  const dejaSauve = document.getElementById('rc').textContent.includes('COMPTE EST BON');
+  if(!dejaSauve && !partieSauvegardee) {
+    let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
+    // Garder le meilleur entre le dernier résultat et le mémorisé
+    if(meilleurMemorise !== null) {
+      if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible))
+        meilleur = meilleurMemorise;
+    }
+    if(meilleur !== null) {
+      sauvegarderPartie(cible, meilleur, meilleur===cible);
+    } else {
+      // Aucun calcul — on sauvegarde avec le meilleur du solver comme référence
+      const res0 = solver(plaques.map(p=>p.val), cible);
+      sauvegarderPartie(cible, res0.best, false);
+    }
+  }
+  document.getElementById('solution-wrap').classList.remove('on');
+  const nums = plaques.map(p=>p.val);
+  const res = solver(nums, cible);
+  const el = document.getElementById('solution-inner');
+  if(res.exact){
+    el.innerHTML=`<div class="solution-title">✓ Solution exacte</div>`+
+      res.steps.map(s=>`<div class="solution-line">${tagSolExpr(s.expr)} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('');
+  } else {
+    el.innerHTML=`<div class="solution-title">Meilleur résultat trouvé : ${res.best}</div>`+
+      res.steps.map(s=>`<div class="solution-line">${tagSolExpr(s.expr)} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('')+
+      `<div class="solution-score">Aucune solution exacte pour ${cible}</div>`;
+  }
+  document.getElementById('solution-wrap').classList.add('on');
+}
+
+// Filtre les étapes pour ne garder que celles qui contribuent au résultat final
+function filterUsefulSteps(steps, finalVal) {
+  if(steps.length===0) return [];
+  // On part du résultat final et on remonte les dépendances
+  const needed = new Set([finalVal]);
+  const useful = [];
+  // Parcourir les steps en sens inverse
+  for(let i=steps.length-1;i>=0;i--){
+    const s=steps[i];
+    if(needed.has(s.res)){
+      useful.unshift(s);
+      needed.delete(s.res);
+      // Extraire les opérandes (nombres dans l'expression)
+      const nums = s.expr.match(/\d+/g);
+      if(nums) nums.forEach(n=>needed.add(parseInt(n)));
+    }
+  }
+  return useful;
+}
+
+function solver(nums, target) {
+  let bestDiff = Infinity, bestResult = {exact:false, best:null, steps:[]};
+
+  function calc(a,b,op){
+    if(op==='+') return a+b;
+    if(op==='-') return a>b?a-b:null;
+    if(op==='*') return a*b;
+    if(op==='/') return b!==0&&a%b===0?a/b:null;
+    return null;
+  }
+  const opSyms = {'+':'+','-':'−','*':'×','/':'÷'};
+
+  function search(vals, steps) {
+    for(const {v} of vals){
+      const d=Math.abs(v-target);
+      const usefulSteps = filterUsefulSteps(steps, v);
+      if(d<bestDiff || (d===bestDiff && usefulSteps.length < bestResult.steps.length)){
+        bestDiff=d;
+        bestResult={exact:d===0, best:v, steps:usefulSteps};
+      }
+    }
+    if(bestDiff===0 && bestResult.steps.length<=3) return;
+    if(vals.length<2) return;
+
+    for(let i=0;i<vals.length;i++){
+      for(let j=0;j<vals.length;j++){
+        if(i===j) continue;
+        const a=vals[i].v, b=vals[j].v;
+        for(const op of ['+','-','*','/']){
+          const r=calc(a,b,op);
+          if(r===null||r<=0) continue;
+          // Ignorer les opérations triviales
+          if(op==='*'&&(b===1||a===1)) continue;
+          if(op==='/'&&b===1) continue;
+          if(op==='+'&&(a===0||b===0)) continue;
+          if(op==='-'&&b===0) continue;
+          if(r===a||r===b) continue; // résultat identique à un des opérandes
+          const newStep={expr:`${a} ${opSyms[op]} ${b}`, res:r};
+          const rest=vals.filter((_,k)=>k!==i&&k!==j);
+          // Passer uniquement les steps courants + ce nouveau
+          search([...rest,{v:r}],[...steps,newStep]);
+          if(bestDiff===0) return;
+        }
+      }
+    }
+  }
+
+  // Chercher la solution avec le moins d'étapes possible en priorité
+  // On essaie d'abord avec peu de nombres (sous-ensembles)
+  const n = nums.length;
+  // Essai avec tous les nombres d'abord
+  search(nums.map(v=>({v})),[]);
+  return bestResult;
+}
+
+// ── Opérateurs clic
+document.querySelectorAll('.op-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    if(partieTerminee) return;
+    opSelection = opSelection===b.dataset.op ? null : b.dataset.op;
+    if(opSelection) playOp();
+    renderOps();
+  });
+});
+
+// ── Historique
+function partager() {
+  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
+  const today = getToday();
+  const todayHist = hist.filter(h => h.date === today).slice().reverse();
+  const toShare = todayHist.length ? todayHist : hist.slice(0,5).reverse();
+  if(!toShare.length) { alert('Aucune partie à partager.'); return; }
+
+  // Générer une image canvas
+  const W = 480, PAD = 28;
+  const lineH = 44;
+  const H = 90 + toShare.length * lineH + (todayHist.length > 1 ? 68 : 30);
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Fond
+  ctx.fillStyle = '#0e0e08';
+  ctx.fillRect(0, 0, W, H);
+  // Bordure
+  ctx.strokeStyle = '#c8a030';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(6, 6, W-12, H-12);
+
+  // Titre
+  ctx.fillStyle = '#e8c84a';
+  ctx.font = 'bold 22px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('🔢 LE COMPTE EST BON', W/2, 42);
+
+  // Date
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '14px monospace';
+  ctx.fillText(today, W/2, 64);
+
+  // Séparateur
+  ctx.strokeStyle = 'rgba(200,160,48,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD, 76); ctx.lineTo(W-PAD, 76); ctx.stroke();
+
+  // Calcul moyenne
+  const aDesAbandons2 = toShare.some(h => h.meilleur === null);
+  const moyEcartCanvas = (!aDesAbandons2 && toShare.length > 0)
+    ? Math.round(toShare.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / todayHist.length)
+    : null;
+
+  // Parties
+  toShare.forEach((h, i) => {
+    const y = 76 + i * lineH + 30;
+    const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
+    const exact = h.exact;
+    const label = exact ? 'LE COMPTE EST BON !' : (h.meilleur === null ? 'Abandon' : `À ${ecart} de la cible`);
+    const color = exact ? '#6ad450' : (ecart !== null && ecart <= 10) ? '#f0b060' : '#e87070';
+
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = '13px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`#${h.num}  Cible ${h.cible}`, PAD, y);
+
+    ctx.fillStyle = color;
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(label, W - PAD, y);
+  });
+
+  // Ligne moyenne
+  if(moyEcartCanvas !== null && toShare.length > 1) {
+    const yMoy = 76 + toShare.length * lineH + 28;
+    ctx.strokeStyle = 'rgba(200,160,48,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD, yMoy - 10); ctx.lineTo(W-PAD, yMoy - 10); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('MOYENNE DES ÉCARTS', PAD, yMoy + 8);
+    ctx.fillStyle = '#e8c84a';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(moyEcartCanvas === 0 ? '🎯' : String(moyEcartCanvas), W - PAD, yMoy + 8);
+  }
+
+  // URL
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  // pas d'URL
+
+  // Partager ou télécharger
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'compte-est-bon.png', {type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+      navigator.share({files:[file], title:'Le Compte est Bon'}).catch(()=>{});
+    } else {
+      // Fallback : téléchargement
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'compte-est-bon.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }, 'image/png');
+}
+
+function clearTout() {
+  // Remet toutes les tuiles disponibles, efface toutes les étapes
+  // mais GARDE le meilleurMemorise
+  etapes = [];
+  valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
+  selection = null;
+  opSelection = null;
+  document.getElementById('plaques-orig').innerHTML = '';
+  document.getElementById('plaques-inter').innerHTML = '';
+  document.getElementById('rc').textContent = '';
+  document.getElementById('rc').className = 'resultat-courant';
+  renderPlaques();
+  renderOps();
+  renderEtapes();
+}
+
+function memoriser() {
+  // Mémorise le dernier résultat intermédiaire comme meilleur score provisoire
+  if(etapes.length === 0) return;
+  const dernierRes = etapes[etapes.length-1].res;
+  const ecart = Math.abs(dernierRes - cible);
+  const ecartMemo = meilleurMemorise !== null ? Math.abs(meilleurMemorise - cible) : Infinity;
+  if(ecart < ecartMemo) {
+    meilleurMemorise = dernierRes;
+    const btn = document.getElementById('btn-memoriser');
+    if(btn) {
+      btn.textContent = `📌 ${dernierRes} (à ${ecart})`;
+      btn.style.color = '#6ad450';
+      setTimeout(() => { btn.style.color = ''; btn.textContent = '📌 Mémoriser'; }, 2000);
+    }
+    renderEtapes(); // Mettre à jour l'affichage du mémo
+  }
+}
+
+function sauvegarderPartie(cible, meilleur, exact) {
+  partieSauvegardee = true;
+  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
+  // Avancer au prochain tirage du jour D'ABORD pour avoir le bon numéro
+  const jourData = getJourData();
+  jourData.current++;
+  saveJourData(jourData);
+  const num = jourData.current; // numéro basé sur le compteur du jour
+  hist.unshift({num, cible, meilleur, exact, date: getToday()});
+  if(hist.length > 100) hist.pop();
+  localStorage.setItem('ceb_hist', JSON.stringify(hist));
+  jourData.parties.push({cible, meilleur, exact, num});
+  saveJourData(jourData);
+  // Mettre à jour le bouton
+  const btn = document.getElementById('btn-nouveau');
+  if(btn) {
+    btn.textContent = `↺ Partie ${jourData.current + 1}`;
+    btn.style.display = '';
+  }
+  const btnMem = document.getElementById('btn-memoriser');
+  if(btnMem) { btnMem.style.display = 'none'; btnMem.textContent = '📌 Mémoriser'; }
+  const btnClear = document.getElementById('btn-clear');
+  if(btnClear) btnClear.style.display = 'none';
+  afficherHistorique();
+}
+
+function afficherHistorique() {
+  const hist = JSON.parse(localStorage.getItem('ceb_hist') || '[]');
+  const today = getToday();
+  const todayGames = hist.filter(h => h.date === today);
+  const displayHist = todayGames.length ? todayGames : hist.slice(0, 5);
+  const wrap = document.getElementById('historique-wrap');
+  const body = document.getElementById('historique-body');
+  wrap.style.display = displayHist.length ? 'block' : 'none';
+  // Date dans le titre
+  const titre = document.getElementById('hist-titre');
+  if(titre) titre.innerHTML = `<span>${todayGames.length ? `Parties du jour · ${today}` : 'Dernières parties'}</span><span style="letter-spacing:0">Écart</span>`;
+  // Calcul de la moyenne des écarts (sans les abandons)
+  const partiesJouees = displayHist.filter(h => h.meilleur !== null);
+  const aDesAbandons = displayHist.some(h => h.meilleur === null);
+  const moyEcart = (!aDesAbandons && partiesJouees.length > 1)
+    ? Math.round(partiesJouees.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / partiesJouees.length)
+    : null;
+
+  body.innerHTML = displayHist.map(h => {
+    const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
+    const cls = h.exact ? 'hist-exact' : (ecart !== null && ecart <= 10) ? 'hist-approche' : 'hist-echec';
+    const gauche = h.exact ? `#${h.num} · Le compte est bon !` : (h.meilleur === null ? `#${h.num} · Abandon` : `#${h.num} · écart ${ecart}`);
+    const droite = h.exact ? `🎯` : (h.meilleur === null ? `` : `${h.meilleur} vs ${h.cible}`);
+    return `<div class="hist-row">
+      <span class="${cls}">${gauche}</span>
+      <span class="hist-cible">${droite}</span>
+    </div>`;
+  }).join('') + (moyEcart !== null && displayHist.length > 1 ? `
+    <div class="hist-row" style="border-top:1px solid rgba(200,160,48,.3);margin-top:.2rem">
+      <span style="color:var(--dim);font-size:.65rem;letter-spacing:.08em">MOYENNE DES ÉCARTS</span>
+      <span style="color:var(--tile-yellow);font-weight:700">${moyEcart === 0 ? '🎯' : moyEcart}</span>
+    </div>` : '');
+}
+
+// ── PWA Service Worker
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+// ── Init
+// Précharger les sons dès que la page est chargée
+document.addEventListener('DOMContentLoaded', () => {
+  // Préchargement silencieux — les sons seront prêts au premier clic
+});
+
+
+
+// ── Init — attendre le clic sur Nouveau
+// Solution cachée avant le chrono
+document.getElementById('cible').innerHTML =
+  '<div class="rouleau" style="color:rgba(255,255,255,.25)">0</div>'.repeat(3);
+// Initialiser l'état du son
+if(muted) {
+  document.getElementById('mute-btn').textContent = '🔇';
+  sndRouleaux.forEach(a => a.volume = 0);
+  sndMusiques.forEach(a => a.volume = 0);
+}
+</script>
+</body>
+</html>
