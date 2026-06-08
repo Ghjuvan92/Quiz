@@ -321,7 +321,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
     <button class="btn-action" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
     <button class="btn-action" type="button" id="btn-clear" onclick="clearTout()" style="display:none">✕ Clear</button>
     <button class="btn-action" type="button" id="btn-memoriser" onclick="memoriser()" style="display:none">📌 Mémoriser</button>
-    <button class="btn-action primary" type="button" id="btn-solution" onclick="demanderSolution()" style="display:none">Solution</button>
+    <button class="btn-action primary" type="button" onclick="demanderSolution()">Solution</button>
   </div>
   <div style="text-align:center;margin-top:-.1rem">
     <button id="mute-btn" onclick="toggleMute()" style="background:none;border:none;
@@ -428,7 +428,6 @@ let opSelection = null; // opérateur sélectionné
 let etapes = [];      // [{expr, res, consumed:[ids], produced:{id,val}}]
 let valeursDispos = [];
 let partieSauvegardee = false;
-let partieTerminee = false;
 let meilleurMemorise = null; // résultat mémorisé par le joueur // [{id,val}] état courant
 
 const TIMER_DURATION = 45;
@@ -626,10 +625,6 @@ function startTimer() {
     if(timerSecondes <= 0) {
       stopTimer();
       stopMusique();
-      // Afficher Solution seulement maintenant
-      const bsolTimer = document.getElementById('btn-solution');
-      if(bsolTimer) bsolTimer.style.display = '';
-      terminerPartie();
       playBuzzer();
       // Sauvegarder avec le meilleur résultat atteint
       let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
@@ -668,11 +663,7 @@ function tirer() {
   selection = null;
   opSelection = null;
   partieSauvegardee = false;
-  partieTerminee = false;
   meilleurMemorise = null;
-  // Cacher Solution pendant la partie
-  const bsol = document.getElementById('btn-solution');
-  if(bsol) { bsol.style.display='none'; bsol.style.opacity=''; bsol.style.pointerEvents=''; }
   document.getElementById('btn-nouveau').style.display = 'none';
   document.getElementById('btn-memoriser').style.display = 'none';
   document.getElementById('btn-clear').style.display = 'block';
@@ -865,9 +856,6 @@ function renderEtapes() {
     playExact();
     stopTimer();
     stopMusique();
-    const bsolExact = document.getElementById('btn-solution');
-    if(bsolExact) bsolExact.style.display = '';
-    terminerPartie();
     if(!partieSauvegardee) sauvegarderPartie(cible, cible, true);
   } else {
     rc.textContent='';
@@ -888,7 +876,6 @@ function showMsg(txt) {
 }
 
 function clicPlaque(id, val) {
-  if(partieTerminee) return;
   if(!selection){
     selection = {id, val};
     playTuile();
@@ -971,26 +958,6 @@ function tagSolExpr(expr){
     if(idx>=0){ origVals.splice(idx,1); return `<span class="num-orig">${v}</span>`; }
     return m;
   });
-}
-
-function terminerPartie() {
-  partieTerminee = true;
-  // Effacer inactif
-  const btnEff = document.querySelector('.btn-action[onclick="effacer()"]');
-  if(btnEff) { btnEff.style.opacity='.35'; btnEff.style.pointerEvents='none'; }
-  // Clear et Mémoriser disparaissent, Partie N apparaît
-  const btnClear = document.getElementById('btn-clear');
-  const btnMem = document.getElementById('btn-memoriser');
-  if(btnClear) btnClear.style.display='none';
-  if(btnMem) btnMem.style.display='none';
-  // Afficher Partie N
-  const btnSuiv = document.getElementById('btn-nouveau');
-  if(btnSuiv) {
-    const jd = getJourData();
-    btnSuiv.textContent = `↺ Partie ${jd.current + 1}`;
-    btnSuiv.style.display = '';
-  }
-  // Solution reste active après le chrono
 }
 
 function demanderSolution() {
@@ -1106,7 +1073,6 @@ function solver(nums, target) {
 // ── Opérateurs clic
 document.querySelectorAll('.op-btn').forEach(b=>{
   b.addEventListener('click',()=>{
-    if(partieTerminee) return;
     opSelection = opSelection===b.dataset.op ? null : b.dataset.op;
     if(opSelection) playOp();
     renderOps();
@@ -1326,7 +1292,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ── Init — attendre le clic sur Nouveau
-// Solution cachée avant le chrono
 document.getElementById('cible').innerHTML =
   '<div class="rouleau" style="color:rgba(255,255,255,.25)">0</div>'.repeat(3);
 // Initialiser l'état du son
