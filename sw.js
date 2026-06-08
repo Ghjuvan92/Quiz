@@ -1,4 +1,4 @@
-const CACHE = 'ceb-v2';
+const CACHE = 'ceb-v4';
 const FILES = [
   'compte_est_bon.html',
   '1.mp3',
@@ -26,7 +26,12 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Network first — toujours essayer le réseau avant le cache
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request).then(response => {
+      const clone = response.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return response;
+    }).catch(() => caches.match(e.request))
   );
 });
