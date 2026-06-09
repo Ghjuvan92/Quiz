@@ -478,7 +478,7 @@ document.addEventListener('click', function debloquerRouleaux() {
       a.pause();
       a.currentTime = 0;
       a.muted = false;
-      a.volume = 0.9;
+      a.volume = muted ? 0 : 0.9;
     }).catch(()=>{});
   });
 });
@@ -500,7 +500,7 @@ function playRouleauSpin(idx, dureeMs) {
   }, Math.max(0, dureeMs - 300));
 }
 
-function playRouleau() {} // tics individuels supprimés
+function playRouleau() { if(muted) return; } // tics individuels supprimés
 
 function playTuile() {
   if(muted) return;
@@ -1125,7 +1125,7 @@ function partager() {
   // Générer une image canvas
   const W = 480, PAD = 28;
   const lineH = 44;
-  const H = 90 + toShare.length * lineH + (todayHist.length > 1 ? 68 : 30);
+  const H = 90 + toShare.length * lineH + (toShare.length > 1 ? 68 : 30);
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -1157,7 +1157,7 @@ function partager() {
   // Calcul moyenne
   const aDesAbandons2 = toShare.some(h => h.meilleur === null);
   const moyEcartCanvas = (!aDesAbandons2 && toShare.length > 0)
-    ? Math.round(toShare.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / todayHist.length)
+    ? Math.round(toShare.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / toShare.length)
     : null;
 
   // Parties
