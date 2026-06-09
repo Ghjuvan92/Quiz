@@ -277,18 +277,22 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
 
 <div class="panel">
 
+  <!-- CIBLE -->
   <div class="cible-wrap">
     <div class="cible-num" id="cible">—</div>
   </div>
 
+  <!-- TIMER -->
   <div>
     <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
   </div>
 
+  <!-- PLAQUES de départ -->
   <div>
     <div class="plaques" id="plaques-orig"></div>
   </div>
 
+  <!-- OPÉRATEURS -->
   <div class="ops" id="ops">
     <button class="op-btn" data-op="+">+</button>
     <button class="op-btn" data-op="−">−</button>
@@ -296,10 +300,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
     <button class="op-btn" data-op="÷">÷</button>
   </div>
 
+  <!-- RÉSULTATS INTERMÉDIAIRES (sous les signes) -->
   <div class="plaques" id="plaques-inter" style="justify-content:center;min-height:0"></div>
 
+  <!-- RÉSULTAT COURANT -->
   <div class="resultat-courant" id="rc"></div>
 
+  <!-- ÉTAPES -->
   <div class="etapes-wrap">
     <div class="etapes-inner" id="etapes">
       <div class="etapes-vide" style="color:rgba(255,255,255,.6);font-family:'Caveat',cursive;font-size:1.1rem;text-align:center;padding:.6rem .5rem;line-height:1.6">
@@ -308,6 +315,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
     </div>
   </div>
 
+  <!-- ACTIONS -->
   <div class="actions">
     <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
     <button class="btn-action" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
@@ -321,10 +329,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
       onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='.4'">🔊</button>
   </div>
 
+  <!-- SOLUTION -->
   <div class="solution-wrap" id="solution-wrap">
     <div class="solution-inner" id="solution-inner"></div>
   </div>
 
+  <!-- HISTORIQUE -->
   <div class="historique-wrap" id="historique-wrap" style="display:none">
     <div class="historique-titre" id="hist-titre" style="display:flex;justify-content:space-between"><span>Parties du jour</span><span style="letter-spacing:0">Écart</span></div>
     <div id="historique-body"></div>
@@ -388,14 +398,14 @@ function tirageJour(n) {
 
 // ── Gestion des parties du jour
 function getJourData() {
-  const todayStr = getToday();
+  const today = getToday();
   // Clé unique par jour — garantit un reset propre chaque jour
-  const key = 'ceb_jour_' + todayStr.replace(/\//g, '');
+  const key = 'ceb_jour_' + today.replace(/\//g, '');
   const raw = localStorage.getItem(key);
   if(raw) {
     try { return JSON.parse(raw); } catch(e) {}
   }
-  const data = {date: todayStr, parties: [], current: 0};
+  const data = {date: today, parties: [], current: 0};
   localStorage.setItem(key, JSON.stringify(data));
   return data;
 }
@@ -868,15 +878,13 @@ function renderEtapes() {
   }
 }
 
-// Correction du bug identifié: retrait de showMsg._t non déclaré et gestion standard
 function showMsg(txt) {
   const rc = document.getElementById('rc');
   rc.textContent = txt;
   rc.className = 'resultat-courant err';
   playErr();
-  
-  if (window.msgTimeout) clearTimeout(window.msgTimeout);
-  window.msgTimeout = setTimeout(() => {
+  clearTimeout(showMsg._t);
+  showMsg._t = setTimeout(() => {
     rc.textContent = '';
     rc.className = 'resultat-courant';
   }, 2000);
@@ -985,6 +993,7 @@ function terminerPartie() {
     btnSuiv.textContent = `↺ Partie ${jd.current + 1}`;
     btnSuiv.style.display = '';
   }
+  // Solution reste active après le chrono
 }
 
 function demanderSolution() {
@@ -1107,7 +1116,7 @@ document.querySelectorAll('.op-btn').forEach(b=>{
   });
 });
 
-// ── Historique et Partage
+// ── Historique
 function partager() {
   const jourData = getJourData();
   const toShare = [...jourData.parties].reverse();
@@ -1135,10 +1144,10 @@ function partager() {
   ctx.textAlign = 'center';
   ctx.fillText('🔢 LE COMPTE EST BON', W/2, 42);
 
-  // Date - CORRIGÉ : Utilisation sécurisée de getToday() au lieu d'une variable globale absente
+  // Date
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   ctx.font = '14px monospace';
-  ctx.fillText(getToday(), W/2, 64);
+  ctx.fillText(today, W/2, 64);
 
   // Séparateur
   ctx.strokeStyle = 'rgba(200,160,48,0.4)';
@@ -1186,13 +1195,19 @@ function partager() {
     ctx.fillText(moyEcartCanvas === 0 ? '🎯' : String(moyEcartCanvas), W - PAD, yMoy + 8);
   }
 
+  // URL
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  // pas d'URL
+
   // Partager ou télécharger
   canvas.toBlob(blob => {
     const file = new File([blob], 'compte-est-bon.png', {type:'image/png'});
     if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
       navigator.share({files:[file], title:'Le Compte est Bon'}).catch(()=>{});
     } else {
-      // Fallback : téléchargement direct
+      // Fallback : téléchargement
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = 'compte-est-bon.png';
@@ -1259,12 +1274,12 @@ function sauvegarderPartie(cible, meilleur, exact) {
 function afficherHistorique() {
   const jourData = getJourData();
   const displayHist = [...jourData.parties].reverse();
-  const todayStr = getToday();
+  const today = getToday();
   const wrap = document.getElementById('historique-wrap');
   const body = document.getElementById('historique-body');
   wrap.style.display = displayHist.length ? 'block' : 'none';
   const titre = document.getElementById('hist-titre');
-  if(titre) titre.innerHTML = `<span>Parties du jour · ${todayStr}</span><span style="letter-spacing:0">Écart</span>`;
+  if(titre) titre.innerHTML = `<span>Parties du jour · ${today}</span><span style="letter-spacing:0">Écart</span>`;
   // Calcul de la moyenne des écarts (sans les abandons)
   const partiesJouees = displayHist.filter(h => h.meilleur !== null);
   const aDesAbandons = displayHist.some(h => h.meilleur === null);
@@ -1295,7 +1310,16 @@ if('serviceWorker' in navigator) {
   });
 }
 
+// ── Init
+// Précharger les sons dès que la page est chargée
+document.addEventListener('DOMContentLoaded', () => {
+  // Préchargement silencieux — les sons seront prêts au premier clic
+});
+
+
+
 // ── Init — attendre le clic sur Nouveau
+// Solution cachée avant le chrono
 document.getElementById('cible').innerHTML =
   '<div class="rouleau" style="color:rgba(255,255,255,.25)">0</div>'.repeat(3);
 // Initialiser l'état du son
