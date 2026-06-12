@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le Compte est Bon · Girly Edition</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffb6c1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Compte Girly">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500;700&family=Caveat:wght@500;700&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff5f6;
+  --bg2:#ffe3e8;
+  --panel-bg:#ffffff;
+  --cherry-dark:#4a1525;
+  --rose-mid:#ffb6c1;
+  --rose-light:#ffd3db;
+  --rose-accent:#ff69b4;
+  --tile-bg:#4a1525;
+  --tile-text:#fff5f6;
+  --tile-selected:#ff69b4;
+  --segment:#ff69b4;
+  --red:#e54b64;
+  --white:#ffffff;
+  --text-main:#4a1525;
+  --dim:rgba(74,21,37,.4);
+  --r:16px;--rs:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:var(--text-main);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:.75rem .75rem 2rem;
+  background:var(--bg);
+  background-image: radial-gradient(var(--rose-light) 1px, transparent 0);
+  background-size: 24px 24px;}
+
+.nav{width:100%;max-width:420px;display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.back{font-size:.8rem;color:var(--dim);text-decoration:none}.back:hover{color:var(--text-main)}
+.hdr{flex:1;text-align:center}
+.hdr h1{font-family:'DM Sans',sans-serif;font-size:1.2rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--cherry-dark)}
+.hdr h1 em{font-style:normal;color:var(--rose-accent)}
+
+.panel{width:100%;max-width:420px;display:flex;flex-direction:column;gap:.65rem;
+  background:var(--panel-bg);
+  border-radius:24px;
+  padding:1rem;
+  border:2px solid var(--rose-light);
+  box-shadow:0 10px 30px rgba(229,180,190,.3),
+    inset 0 2px 4px rgba(255,255,255,.8)}
+
+/* CIBLE — panneau d'affichage style coquette */
+.cible-wrap{background:var(--bg2);border:2px solid var(--rose-light);border-radius:var(--r);
+  padding:.6rem .5rem .5rem;text-align:center;
+  box-shadow:inset 0 2px 8px rgba(74,21,37,.05)}
+.cible-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.25em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
+.cible-num{display:flex;justify-content:center;align-items:center;gap:8px;padding:.2rem 0}
+.rouleau{
+  width:58px;height:80px;
+  background:linear-gradient(180deg,#ffffff 0%,#fff0f2 48%,#ffe5e9 50%,#fff0f2 100%);
+  border:2px solid var(--rose-light);
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Chakra Petch',monospace;font-size:3rem;font-weight:700;
+  color:var(--cherry-dark);
+  letter-spacing:-.02em;
+  box-shadow:inset 0 1px 3px rgba(255,255,255,1),
+             inset 0 -2px 4px rgba(74,21,37,.05),
+             0 4px 10px rgba(229,180,190,.2);
+  position:relative;overflow:hidden;
+}
+/* Ligne centrale split-flap */
+.rouleau::after{
+  content:'';position:absolute;
+  left:0;right:0;top:50%;
+  width:100%;height:1px;
+  background:rgba(255,182,193,.4);
+  z-index:2;
+}
+
+/* PLAQUES — style tuiles lisses chic */
+.plaques{
+  display:flex;gap:6px;justify-content:center;align-items:flex-end;
+  flex-wrap:nowrap;
+  padding:12px 10px 10px 10px;
+  width:100%;box-sizing:border-box;overflow:hidden;
+  min-height:68px;
+  background:linear-gradient(180deg,#ffeef1 0%,var(--rose-light) 100%);
+  border:2px solid var(--rose-light);
+  border-radius:16px;
+  box-shadow:inset 0 1px 3px rgba(255,255,255,.6);}
+.plaque{
+  width:min(62px, calc((min(100vw, 420px) - 80px) / 6));height:46px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif;
+  font-size:1.6rem;font-weight:700;
+  background:var(--tile-bg);color:var(--tile-text);
+  border:none;
+  box-shadow:0 4px 0 #2d0b16, 0 6px 10px rgba(74,21,37,.15);
+  cursor:pointer;transition:transform .1s ease,box-shadow .1s ease;
+  user-select:none;position:relative;flex-shrink:0;}
+.plaque.petite{background:var(--tile-bg);color:var(--tile-text);}
+.plaque.grande{background:var(--cherry-dark);color:var(--tile-text);}
+.plaque.selected{
+  background:var(--tile-selected) !important;
+  color:#ffffff !important;
+  transform:translateY(-4px);
+  box-shadow:0 8px 0 #d43f8d,0 8px 12px rgba(212,63,141,.25);
+}
+.plaque.used-in-step{opacity:.15;box-shadow:none;transform:translateY(2px);pointer-events:none;}
+.plaque:not([disabled]):hover{transform:translateY(-2px);
+  box-shadow:0 5px 0 #2d0b16,0 5px 8px rgba(74,21,37,.15);}
+
+/* Plaque fantôme (utilisée) */
+.plaque-ghost{width:min(62px, calc((min(100vw, 420px) - 80px) / 6));height:46px;border-radius:10px;
+  background:rgba(74,21,37,.03);
+  border:1px dashed var(--rose-mid)}
+/* Plaque utilisée dans étapes : encadrée */
+.plaque.used-in-step{
+  outline:2.5px solid var(--rose-accent);
+  opacity:.45}
+
+/* OPÉRATEURS */
+.ops{display:flex;gap:8px;justify-content:center}
+.op-btn{width:62px;height:62px;border-radius:14px;
+  border:1px solid var(--rose-light);
+  background:linear-gradient(160deg,#ffffff 0%,#fff2f4 100%);
+  font-family:'DM Sans',sans-serif;font-weight:500;font-size:1.6rem;
+  color:var(--cherry-dark);cursor:pointer;transition:all .12s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 0 var(--rose-light),0 5px 8px rgba(229,180,190,.2)}
+.op-btn.selected{
+  background:var(--cherry-dark);
+  border-color:var(--cherry-dark);
+  color:#ffffff;
+  transform:translateY(2px);
+  box-shadow:0 1px 0 var(--rose-light),inset 0 2px 4px rgba(0,0,0,.2)}
+.op-btn:hover:not(.selected){background:linear-gradient(160deg,#fff2f4,#ffe5ea);color:var(--rose-accent)}
+
+/* ÉTAPES */
+.etapes-wrap{
+  background:linear-gradient(160deg,#fffafb 0%,#fff2f4 100%);
+  border:2px solid var(--rose-light);
+  border-radius:16px;
+  min-height:64px;overflow:hidden;
+  box-shadow:inset 0 2px 6px rgba(229,180,190,.15);
+  position:relative}
+.etapes-inner{padding:.6rem .8rem}
+.num-orig{
+  display:inline-block;
+  background:var(--bg2);
+  color:var(--cherry-dark);
+  border:1px solid var(--rose-mid);
+  border-radius:5px;
+  padding:1px 5px;
+  font-family:'DM Sans',sans-serif;
+  font-size:.8em;
+  font-weight:700;
+  vertical-align:middle;
+  position:relative;top:-1px;
+}
+.etape-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.2rem 0;
+  border-bottom:1px solid rgba(255,182,193,.3);
+  font-family:'Caveat',cursive;font-size:1.4rem;font-weight:700;
+  color:var(--cherry-dark);letter-spacing:.02em;line-height:1.6;}
+.etape-row:last-child{border-bottom:none}
+.etape-del{background:none;border:none;cursor:pointer;
+  color:var(--rose-mid);font-size:.85rem;padding:0 .3rem;
+  font-family:'Share Tech Mono',monospace}
+.etape-del:hover{color:var(--red)}
+
+/* RÉSULTAT */
+.resultat-courant{font-size:.75rem;text-align:center;
+  font-family:'Share Tech Mono',monospace;color:var(--dim);min-height:1.2rem}
+.resultat-courant.exact{color:var(--rose-accent);font-size:1.1rem;font-weight:700;
+  font-family:'Caveat',cursive;}
+.resultat-courant.err{color:var(--red);font-size:.8rem}
+
+/* ACTIONS */
+.actions{display:flex;gap:6px}
+.btn-action{flex:1;padding:.65rem .4rem;border-radius:var(--rs);
+  border:1px solid var(--rose-light);
+  background:#ffffff;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:.75rem;
+  letter-spacing:.02em;
+  color:var(--cherry-dark);cursor:pointer;transition:all .16s;text-align:center;
+  box-shadow:0 2px 4px rgba(229,180,190,.1)}
+.btn-action:hover{background:var(--bg2);color:var(--rose-accent)}
+.btn-action.primary{background:var(--rose-accent);border-color:var(--rose-accent);color:#fff;
+  box-shadow:0 4px 10px rgba(255,105,180,.25)}
+.btn-action.primary:hover{background:#e04394}
+
+/* HISTORIQUE & SOLUTION */
+.historique-wrap{background:#ffffff;border:2px solid var(--rose-light);border-radius:var(--r);
+  overflow:hidden;margin-top:.4rem;box-shadow:0 4px 12px rgba(229,180,190,.15)}
+.historique-titre{font-family:'DM Sans',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--rose-accent);
+  padding:.6rem .75rem .2rem}
+.hist-row{display:flex;justify-content:space-between;align-items:center;
+  padding:.3rem .75rem;border-top:1px solid var(--rose-light);
+  font-family:'Share Tech Mono',monospace;font-size:0.8rem;color:var(--cherry-dark)}
+.hist-cible{color:var(--dim)}
+.hist-exact{color:#3da35d;font-weight:700}
+.hist-approche{color:#b37400}
+.hist-echec{color:var(--red)}
+
+.solution-wrap{background:#ffffff;border:2px solid var(--rose-light);
+  border-radius:var(--r);display:none;overflow:hidden;box-shadow:0 4px 12px rgba(229,180,190,.1)}
+.solution-wrap.on{display:block;animation:slin .3s ease}
+@keyframes slin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.solution-inner{padding:.6rem .75rem}
+.solution-title{font-family:'DM Sans',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--rose-accent);margin-bottom:.35rem}
+.solution-line{font-family:'Share Tech Mono',monospace;font-size:.85rem;
+  color:var(--cherry-dark);padding:.2rem 0;border-bottom:1px solid var(--rose-light)}
+.solution-line:last-child{border-bottom:none}
+
+/* TIMER */
+.timer-wrap{width:100%;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;
+  border:none}
+.timer-bar{height:100%;background:var(--rose-accent);border-radius:3px;
+  transition:width .9s linear;width:100%;}
+.timer-bar.urgent{background:var(--red);box-shadow:0 0 8px rgba(229,75,100,.4)}
+
+/* intermédiaires */
+#plaques-inter{background:transparent;border:none;padding:.25rem 0;min-height:0}
+.plaque.inter{
+  outline:2px solid var(--rose-accent);
+  background:#ffffff;
+  color:var(--cherry-dark);
+  box-shadow:0 4px 0 var(--rose-light), 0 4px 6px rgba(229,180,190,.2);
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="back"></div>
+  <div class="hdr"><h1>Le <em>Compte est Bon</em> 🌸</h1></div>
+</div>
+
+<div class="panel">
+
+  <div class="cible-wrap">
+    <div class="cible-num" id="cible">—</div>
+  </div>
+
+  <div>
+    <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+  </div>
+
+  <div>
+    <div class="plaques" id="plaques-orig"></div>
+  </div>
+
+  <div class="ops" id="ops">
+    <button class="op-btn" data-op="+">+</button>
+    <button class="op-btn" data-op="−">−</button>
+    <button class="op-btn" data-op="×">×</button>
+    <button class="op-btn" data-op="÷">÷</button>
+  </div>
+
+  <div class="plaques" id="plaques-inter" style="justify-content:center;min-height:0"></div>
+
+  <div class="resultat-courant" id="rc"></div>
+
+  <div class="etapes-wrap">
+    <div class="etapes-inner" id="etapes">
+      <div class="etapes-vide" style="color:var(--dim);font-family:'Caveat',cursive;font-size:1.2rem;text-align:center;padding:.6rem .5rem;line-height:1.6">
+        Combine les 6 jolies tuiles avec&nbsp;+&nbsp;−&nbsp;×&nbsp;÷<br>pour atteindre la cible en 45 secondes !
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
+    <button class="btn-action primary" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
+    <button class="btn-action" type="button" id="btn-clear" onclick="clearTout()" style="display:none">✕ Clear</button>
+    <button class="btn-action" type="button" id="btn-memoriser" onclick="memoriser()" style="display:none">📌 Mémoriser</button>
+    <button class="btn-action primary" type="button" id="btn-solution" onclick="demanderSolution()" style="display:none">Solution</button>
+  </div>
+  <div style="text-align:center;margin-top:-.1rem">
+    <button id="mute-btn" onclick="toggleMute()" style="background:none;border:none;
+      font-size:1.1rem;cursor:pointer;opacity:.4;padding:.2rem .6rem;transition:opacity .15s"
+      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='.4'">🔊</button>
+  </div>
+
+  <div class="solution-wrap" id="solution-wrap">
+    <div class="solution-inner" id="solution-inner"></div>
+  </div>
+
+  <div class="historique-wrap" id="historique-wrap" style="display:none">
+    <div class="historique-titre" id="hist-titre" style="display:flex;justify-content:space-between"><span>Parties du jour</span><span style="letter-spacing:0">Écart</span></div>
+    <div id="historique-body"></div>
+    <div style="padding:.4rem .65rem .55rem">
+      <button class="btn-action" onclick="partager()" id="share-btn" style="width:100%">⬆ Partager le score</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Le reste de la logique JavaScript (corrigée) est conservé à l'identique pour assurer la parfaite compatibilité des fonctionnalités.
+const POOL = [25,50,75,100, 1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10];
+const shuf = a => [...a].sort(()=>Math.random()-.5);
+
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function seedFromDate(d) {
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+
+function getToday() {
+  const d = new Date();
+  if(d.getHours() < 3) d.setDate(d.getDate() - 1);
+  const j = String(d.getDate()).padStart(2,'0');
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const a = d.getFullYear();
+  return `${j}/${m}/${a}`;
+}
+
+function tirageJour(n) {
+  const d = new Date();
+  const seed = seedFromDate(d) * 1000 + n;
+  const rng = mulberry32(seed);
+  const pool = [...POOL];
+  for(let i = pool.length-1; i > 0; i--) {
+    const j = Math.floor(rng() * (i+1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return {plaques: pool.slice(0, 6), cible: 101 + Math.floor(rng() * 899)};
+}
+
+function getJourData() {
+  const todayStr = getToday();
+  const key = 'ceb_jour_' + todayStr.replace(/\//g, '');
+  const raw = localStorage.getItem(key);
+  if(raw) { try { return JSON.parse(raw); } catch(e) {} }
+  const data = {date: todayStr, parties: [], current: 0};
+  localStorage.setItem(key, JSON.stringify(data));
+  return data;
+}
+
+function saveJourData(data) {
+  const key = 'ceb_jour_' + data.date.replace(/\//g, '');
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+let plaques = [], cible = 0, disponibles = [], selection = null, opSelection = null, etapes = [], valeursDispos = [];
+let partieSauvegardee = false, partieTerminee = false, meilleurMemorise = null;
+const TIMER_DURATION = 45;
+let timerInterval = null, timerSecondes = TIMER_DURATION;
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+document.addEventListener('click', () => { if(AC.state === 'suspended') AC.resume(); }, {once: false});
+
+function playTick() {}
+function playErr() {
+  if(muted) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = 'sine'; o.frequency.setValueAtTime(200, t);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+  o.start(t); o.stop(t + 0.2);
+}
+
+const sndMusiques = [new Audio('1.mp3'), new Audio('2.mp3'), new Audio('3.mp3')];
+sndMusiques.forEach(a => a.volume = 0.55);
+const sndRouleaux = [0,1,2].map(() => {
+  const a = new Audio('ElevenLabs_clackity_wheel_spin.mp3');
+  a.preload = 'auto'; a.load(); return a;
+});
+
+let rouleauxDebloqués = false;
+document.addEventListener('click', function debloquerRouleaux() {
+  if(rouleauxDebloqués) return;
+  rouleauxDebloqués = true;
+  sndRouleaux.forEach(a => {
+    a.muted = true;
+    a.play().then(() => { a.pause(); a.currentTime = 0; a.muted = false; a.volume = muted ? 0 : 0.9; }).catch(()=>{});
+  });
+});
+
+function playRouleauSpin(idx, dureeMs) {
+  const snd = sndRouleaux[idx];
+  snd.currentTime = 0; snd.volume = muted ? 0 : 0.9;
+  const p = snd.play(); if(p) p.catch(()=>{});
+  setTimeout(() => {
+    let vol = 0.9;
+    const fade = setInterval(() => {
+      vol = Math.max(0, vol - 0.09); try { snd.volume = vol; } catch(e){}
+      if(vol <= 0) { clearInterval(fade); try{snd.pause();}catch(e){} }
+    }, 30);
+  }, Math.max(0, dureeMs - 300));
+}
+
+function playRouleau() {}
+function playTuile() {
+  if(muted) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination); o.type = 'sine';
+  o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(180, t + 0.06);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  o.start(t); o.stop(t + 0.12);
+}
+
+function playOp() {
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination); o.type = 'sine'; o.frequency.setValueAtTime(520, t);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.004); g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  o.start(t); o.stop(t + 0.07);
+}
+
+function playExact() {
+  if(muted) return;
+  const t = AC.currentTime;
+  [[0, 523], [0.1, 659], [0.2, 784], [0.32, 1047]].forEach(([delay, freq]) => {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination); o.type = 'triangle'; o.frequency.setValueAtTime(freq, t + delay);
+    g.gain.setValueAtTime(0, t + delay); g.gain.linearRampToValueAtTime(0.18, t + delay + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.35);
+    o.start(t + delay); o.stop(t + delay + 0.4);
+  });
+}
+
+function playBuzzer() {
+  if(muted) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination); o.type = 'sine'; o.frequency.setValueAtTime(1047, t);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.18, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 2.2);
+  o.start(t); o.stop(t + 1.8);
+}
+
+let bgMusic = null;
+function startMusique() {
+  stopMusique();
+  const idx = Math.floor(Math.random() * sndMusiques.length);
+  bgMusic = sndMusiques[idx].cloneNode(); bgMusic.volume = muted ? 0 : 0.55; bgMusic.play().catch(()=>{});
+}
+
+let muted = localStorage.getItem('ceb_muted') === '1';
+function toggleMute() {
+  muted = !muted; localStorage.setItem('ceb_muted', muted ? '1' : '0');
+  document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+  if(muted) stopMusique();
+  sndRouleaux.forEach(a => a.volume = muted ? 0 : 0.9);
+  sndMusiques.forEach(a => a.volume = muted ? 0 : 0.55);
+  if(bgMusic) bgMusic.volume = muted ? 0 : 0.55;
+}
+
+function stopMusique() { if(bgMusic) { bgMusic.pause(); bgMusic.currentTime = 0; bgMusic = null; } }
+
+function startTimer() {
+  stopTimer(); timerSecondes = TIMER_DURATION; updateTimerDisplay(); startMusique();
+  timerInterval = setInterval(() => {
+    timerSecondes--; updateTimerDisplay();
+    if(timerSecondes <= 0) {
+      stopTimer(); stopMusique();
+      const bsolTimer = document.getElementById('btn-solution'); if(bsolTimer) bsolTimer.style.display = '';
+      terminerPartie(); playBuzzer();
+      let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
+      if(meilleurMemorise !== null) { if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible)) meilleur = meilleurMemorise; }
+      if(meilleur !== null && !partieSauvegardee) sauvegarderPartie(cible, meilleur, meilleur===cible);
+    }
+  }, 1000);
+}
+
+function stopTimer() { if(timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
+function updateTimerDisplay() {
+  const bar = document.getElementById('timer-bar');
+  const pct = (timerSecondes / TIMER_DURATION) * 100;
+  bar.style.width = pct + '%'; bar.classList.toggle('urgent', timerSecondes <= 10);
+}
+
+function tirer() {
+  const jourData = getJourData();
+  const t = tirageJour(jourData.current);
+  const grandesVals = new Set([25,50,75,100]);
+  plaques = t.plaques.map((v,i) => ({val:v, id:i, type: grandesVals.has(v)?'grande':'petite'}));
+  cible = t.cible; valeursDispos = plaques.map(p=>({id:p.id, val:p.val}));
+  etapes = []; selection = null; opSelection = null; partieSauvegardee = false; partieTerminee = false; meilleurMemorise = null;
+  
+  const btnEff = document.querySelector('.btn-action[onclick="effacer()"]'); if(btnEff) { btnEff.style.opacity=''; btnEff.style.pointerEvents=''; }
+  const bsol = document.getElementById('btn-solution'); if(bsol) { bsol.style.display='none'; bsol.style.opacity=''; bsol.style.pointerEvents=''; }
+  
+  document.getElementById('btn-nouveau').style.display = 'none';
+  document.getElementById('btn-memoriser').style.display = 'none';
+  document.getElementById('btn-clear').style.display = 'block';
+  document.getElementById('historique-wrap').style.display = 'none';
+  document.getElementById('solution-wrap').classList.remove('on');
+  document.getElementById('rc').textContent = ''; document.getElementById('rc').className = 'resultat-courant';
+  document.getElementById('plaques-inter').innerHTML = '';
+  renderOps(); renderEtapes();
+  revelerPlaques(plaques, () => { animerCible(String(cible).padStart(3,'0').split(''), () => startTimer()); });
+}
+
+function revelerPlaques(plaquesArr, onDone) {
+  const el = document.getElementById('plaques-orig'); el.innerHTML = '';
+  plaquesArr.forEach(p => {
+    const g = document.createElement('div'); g.className = 'plaque-ghost'; g.id = 'ghost-' + p.id; el.appendChild(g);
+  });
+  plaquesArr.forEach((p, idx) => {
+    setTimeout(() => {
+      const ghost = document.getElementById('ghost-' + p.id);
+      const btn = document.createElement('button');
+      btn.className = p.type==='grande' ? 'plaque grande' : 'plaque petite';
+      btn.id = 'plaque-' + p.id; btn.textContent = p.val; btn.dataset.len = String(p.val).length;
+      btn.onclick = () => clicPlaque(p.id, p.val);
+      if(ghost) ghost.replaceWith(btn); playTuile();
+      if(idx === plaquesArr.length - 1) setTimeout(onDone, 600);
+    }, idx * 550);
+  });
+}
+
+function animerCible(digits, onDone) {
+  const el = document.getElementById('cible');
+  el.innerHTML = digits.map((_,i) => `<div class="rouleau" id="rouleau-${i}">0</div>`).join('');
+  let done = 0;
+  digits.forEach((finalDigit, i) => {
+    const rouleau = document.getElementById(`rouleau-${i}`);
+    const target = parseInt(finalDigit);
+    setTimeout(() => {
+      const minSteps = 22; const stepsNeeded = minSteps + ((target - (minSteps % 10) + 10) % 10);
+      let estimDur = 0;
+      for(let s=0; s<stepsNeeded; s++){
+        const r = s/stepsNeeded;
+        if(r<0.25) estimDur += 200 - r*4*150; else if(r<0.55) estimDur += 50; else { const tt=(r-0.55)/0.45; estimDur += 50+tt*tt*450; }
+      }
+      playRouleauSpin(i, estimDur);
+      function getSpeed(s) {
+        const ratio = s / stepsNeeded;
+        if(ratio < 0.2) return 180 - ratio * 5 * 130; if(ratio < 0.65) return 50;
+        return 50 + ((ratio - 0.65) / 0.35) * ((ratio - 0.65) / 0.35) * 200;
+      }
+      let step = 0, current = 0;
+      function tick() {
+        rouleau.textContent = current % 10; playRouleau(); current++; step++;
+        if(step >= stepsNeeded) { rouleau.textContent = target; done++; if(done === digits.length) onDone(); return; }
+        setTimeout(tick, getSpeed(step));
+      }
+      setTimeout(tick, getSpeed(0));
+    }, i * 500);
+  });
+}
+
+function renderPlaques() {
+  const elOrig  = document.getElementById('plaques-orig');
+  const elInter = document.getElementById('plaques-inter');
+  elInter.innerHTML = '';
+  const dispos = new Set(valeursDispos.filter(v=>v.id<100).map(v=>v.id));
+
+  if(elOrig.children.length === 0) {
+    plaques.forEach(p=>{
+      const btn = document.createElement('button'); btn.className = p.type==='grande' ? 'plaque grande' : 'plaque petite';
+      btn.id = 'plaque-' + p.id; btn.textContent = p.val; btn.onclick = () => clicPlaque(p.id, p.val); elOrig.appendChild(btn);
+    });
+  }
+
+  plaques.forEach(p=>{
+    const btn = document.getElementById('plaque-' + p.id); if(!btn) return;
+    const available = dispos.has(p.id); btn.disabled = !available;
+    btn.style.opacity = available ? '1' : '0.45'; btn.style.pointerEvents = available ? '' : 'none';
+    if(!available) btn.classList.add('used-in-step'); else btn.classList.remove('used-in-step');
+    if(selection && selection.id===p.id) btn.classList.add('selected'); else btn.classList.remove('selected');
+  });
+
+  valeursDispos.filter(v=>v.id>=100).forEach(v=>{
+    const btn = document.createElement('button'); btn.className = 'plaque petite inter';
+    if(selection && selection.id===v.id) btn.classList.add('selected');
+    btn.textContent = v.val; btn.dataset.len = String(v.val).length; btn.onclick = () => clicPlaque(v.id, v.val); elInter.appendChild(btn);
+  });
+}
+
+function renderOps() { document.querySelectorAll('.op-btn').forEach(b=>{ b.classList.toggle('selected', b.dataset.op===opSelection); }); }
+
+function renderEtapes() {
+  const el = document.getElementById('etapes');
+  const memoHtml = meilleurMemorise !== null ? `<div style="text-align:right;font-family:'DM Sans',sans-serif;font-weight:500;font-size:.7rem;color:var(--rose-accent);margin-bottom:.3rem">🌸 mémo : ${meilleurMemorise} (écart ${Math.abs(meilleurMemorise-cible)})</div>` : '';
+  if(etapes.length===0){ el.innerHTML = memoHtml; return; }
+  
+  el.innerHTML = memoHtml + etapes.map((e,i)=>`<div class="etape-row"><span class="etape-expr">${e.expr} <span>= ${e.res}</span></span><button class="etape-del" onclick="supprimerEtape(${i})">✕</button></div>`).join('');
+  
+  const btnMem = document.getElementById('btn-memoriser');
+  if(btnMem) {
+    if(etapes.length > 0) {
+      const dernierRes = etapes[etapes.length-1].res; const ecartDernier = Math.abs(dernierRes - cible);
+      const ecartMemo = meilleurMemorise !== null ? Math.abs(meilleurMemorise - cible) : Infinity;
+      btnMem.style.display = (ecartDernier < ecartMemo) ? 'block' : 'none';
+    } else { btnMem.style.display = 'none'; }
+  }
+  
+  const rc = document.getElementById('rc');
+  if(valeursDispos.some(v=>v.val===cible)){
+    rc.textContent='FÉLICITATIONS ! LE COMPTE EST BON ✨'; rc.className='resultat-courant exact';
+    playExact(); stopTimer(); stopMusique();
+    const bsolExact = document.getElementById('btn-solution'); if(bsolExact) bsolExact.style.display = '';
+    terminerPartie(); if(!partieSauvegardee) sauvegarderPartie(cible, cible, true);
+  } else { rc.textContent=''; rc.className='resultat-courant'; }
+}
+
+function showMsg(txt) {
+  const rc = document.getElementById('rc'); rc.textContent = txt; rc.className = 'resultat-courant err'; playErr();
+  if (window.msgTimeout) clearTimeout(window.msgTimeout);
+  window.msgTimeout = setTimeout(() => { rc.textContent = ''; rc.className = 'resultat-courant'; }, 2000);
+}
+
+function clicPlaque(id, val) {
+  if(partieTerminee) return;
+  if(!selection){ selection = {id, val}; playTuile(); renderPlaques(); return; }
+  if(selection.id===id){ selection=null; renderPlaques(); return; }
+  if(!opSelection) return;
+  playTuile();
+  const a=selection.val, b=val; let res=null, expr='';
+  const tagA = selection.id<100 ? `<span class="num-orig">${a}</span>` : `${a}`;
+  const tagB = id<100 ? `<span class="num-orig">${b}</span>` : `${b}`;
+  if(opSelection==='+'){res=a+b;expr=`${tagA} + ${tagB}`;}
+  else if(opSelection==='−'){ if(a<b){showMsg('OUPS ! RÉSULTAT NÉGATIF');return;} res=a-b;expr=`${tagA} − ${tagB}`; }
+  else if(opSelection==='×'){res=a*b;expr=`${tagA} × ${tagB}`;}
+  else if(opSelection==='÷'){ if(b===0||a%b!==0){showMsg('DIVISION IMPOSSIBLE');return;} res=a/b;expr=`${tagA} ÷ ${tagB}`; }
+  if(res===0){showMsg('RÉSULTAT NUL');return;}
+
+  const newId = 100+etapes.length; etapes.push({expr, res, consumed:[selection.id, id], produced:{id:newId, val:res}});
+  valeursDispos = valeursDispos.filter(v=>v.id!==selection.id&&v.id!==id); valeursDispos.push({id:newId, val:res});
+  selection=null; opSelection=null; renderPlaques(); renderOps(); renderEtapes();
+}
+
+function supprimerEtape(idx) {
+  const garder = etapes.slice(0,idx); etapes = garder;
+  valeursDispos = [];
+  const usedInKept = new Set(garder.flatMap(e=>e.consumed)), producedInKept = garder.map(e=>e.produced);
+  plaques.forEach(p=>{ if(!usedInKept.has(p.id)) valeursDispos.push({id:p.id,val:p.val}); });
+  producedInKept.forEach(p=>{ if(!usedInKept.has(p.id)) valeursDispos.push({id:p.id,val:p.val}); });
+  selection=null; opSelection=null; renderPlaques(); renderOps(); renderEtapes();
+  if(etapes.length===0){document.getElementById('rc').textContent='';document.getElementById('rc').className='resultat-courant';}
+}
+
+function effacer() { if(etapes.length>0) supprimerEtape(etapes.length-1); else{selection=null;opSelection=null;renderPlaques();renderOps();} }
+function reset() { document.getElementById('solution-wrap').classList.remove('on'); if(AC.state === 'suspended') { AC.resume(); } const btn = document.getElementById('btn-nouveau'); if(btn) { btn.textContent = '↺ Nouveau'; } tirer(); }
+
+function tagSolExpr(expr){
+  const origVals = plaques.map(p=>p.val);
+  return expr.replace(/\b(\d+)\b/g, (m,n)=>{
+    const v=parseInt(n), idx=origVals.indexOf(v);
+    if(idx>=0){ origVals.splice(idx,1); return `<span class="num-orig">${v}</span>`; } return m;
+  });
+}
+
+function terminerPartie() {
+  partieTerminee = true;
+  const btnEff = document.querySelector('.btn-action[onclick="effacer()"]'); if(btnEff) { btnEff.style.opacity='.35'; btnEff.style.pointerEvents='none'; }
+  const btnClear = document.getElementById('btn-clear'), btnMem = document.getElementById('btn-memoriser');
+  if(btnClear) btnClear.style.display='none'; if(btnMem) btnMem.style.display='none';
+  const btnSuiv = document.getElementById('btn-nouveau'); if(btnSuiv) { const jd = getJourData(); btnSuiv.textContent = `↺ Partie ${jd.current + 1}`; btnSuiv.style.display = ''; }
+}
+
+function demanderSolution() {
+  stopTimer(); stopMusique();
+  const dejaSauve = document.getElementById('rc').textContent.includes('COMPTE EST BON');
+  if(!dejaSauve && !partieSauvegardee) {
+    let meilleur = etapes.length > 0 ? etapes[etapes.length-1].res : null;
+    if(meilleurMemorise !== null) { if(meilleur === null || Math.abs(meilleurMemorise-cible) < Math.abs(meilleur-cible)) meilleur = meilleurMemorise; }
+    if(meilleur !== null) { sauvegarderPartie(cible, meilleur, meilleur===cible); } else { const res0 = solver(plaques.map(p=>p.val), cible); sauvegarderPartie(cible, res0.best, false); }
+  }
+  document.getElementById('solution-wrap').classList.remove('on');
+  const res = solver(plaques.map(p=>p.val), cible), el = document.getElementById('solution-inner');
+  if(res.exact){
+    el.innerHTML=`<div class="solution-title">✓ Solution exacte</div>`+ res.steps.map(s=>`<div class="solution-line">${tagSolExpr(s.expr)} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('');
+  } else {
+    el.innerHTML=`<div class="solution-title">Meilleur résultat trouvé : ${res.best}</div>`+ res.steps.map(s=>`<div class="solution-line">${tagSolExpr(s.expr)} <span class="solution-ligne-res">= ${s.res}</span></div>`).join('')+ `<div class="solution-score" style="font-size:0.75rem; color:var(--dim); margin-top:4px;">Pas de solution exacte trouvée pour ${cible}</div>`;
+  }
+  document.getElementById('solution-wrap').classList.add('on');
+}
+
+function filterUsefulSteps(steps, finalVal) {
+  if(steps.length===0) return []; const needed = new Set([finalVal]), useful = [];
+  for(let i=steps.length-1;i>=0;i--){
+    const s=steps[i]; if(needed.has(s.res)){ useful.unshift(s); needed.delete(s.res); const nums = s.expr.match(/\d+/g); if(nums) nums.forEach(n=>needed.add(parseInt(n))); }
+  }
+  return useful;
+}
+
+function solver(nums, target) {
+  let bestDiff = Infinity, bestResult = {exact:false, best:null, steps:[]};
+  function calc(a,b,op){ if(op==='+') return a+b; if(op==='-') return a>b?a-b:null; if(op==='*') return a*b; if(op==='/') return b!==0&&a%b===0?a/b:null; return null; }
+  const opSyms = {'+':'+','-':'−','*':'×','/':'÷'};
+
+  function search(vals, steps) {
+    for(const {v} of vals){
+      const d=Math.abs(v-target), usefulSteps = filterUsefulSteps(steps, v);
+      if(d<bestDiff || (d===bestDiff && usefulSteps.length < bestResult.steps.length)){ bestDiff=d; bestResult={exact:d===0, best:v, steps:usefulSteps}; }
+    }
+    if(bestDiff===0 && bestResult.steps.length<=3) return; if(vals.length<2) return;
+    for(let i=0;i<vals.length;i++){
+      for(let j=0;j<vals.length;j++){
+        if(i===j) continue; const a=vals[i].v, b=vals[j].v;
+        for(const op of ['+','-','*','/']){
+          const r=calc(a,b,op); if(r===null||r<=0) continue;
+          if(op==='*'&&(b===1||a===1)) continue; if(op==='/'&&b===1) continue;
+          const newStep={expr:`${a} ${opSyms[op]} ${b}`, res:r}, rest=vals.filter((_,k)=>k!==i&&k!==j);
+          search([...rest,{v:r}],[...steps,newStep]); if(bestDiff===0) return;
+        }
+      }
+    }
+  }
+  search(nums.map(v=>({v})),[]); return bestResult;
+}
+
+document.querySelectorAll('.op-btn').forEach(b=>{ b.addEventListener('click',()=>{ if(partieTerminee) return; opSelection = opSelection===b.dataset.op ? null : b.dataset.op; if(opSelection) playOp(); renderOps(); }); });
+
+function partager() {
+  const jourData = getJourData(); const toShare = [...jourData.parties].reverse();
+  if(!toShare.length) { alert('Aucune partie à partager.'); return; }
+  const W = 480, PAD = 28, lineH = 44, H = 90 + toShare.length * lineH + (toShare.length > 1 ? 68 : 30);
+  const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
+
+  // Rendu Canvas aux tons Girly pour l'image partagée
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#ffb6c1'; ctx.lineWidth = 4; ctx.strokeRect(8, 8, W-16, H-16);
+
+  ctx.fillStyle = '#4a1525'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🌸 LE COMPTE EST BON 🌸', W/2, 42);
+  ctx.fillStyle = 'rgba(74,21,37,0.5)'; ctx.font = '14px monospace'; ctx.fillText(getToday(), W/2, 64);
+  ctx.strokeStyle = 'rgba(255,182,193,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(PAD, 76); ctx.lineTo(W-PAD, 76); ctx.stroke();
+
+  const aDesAbandons2 = toShare.some(h => h.meilleur === null);
+  const moyEcartCanvas = (!aDesAbandons2 && toShare.length > 0) ? Math.round(toShare.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / toShare.length) : null;
+
+  toShare.forEach((h, i) => {
+    const y = 76 + i * lineH + 30; const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
+    const label = h.exact ? 'LE COMPTE EST BON ! ✨' : (h.meilleur === null ? 'Abandon' : `À ${ecart} de la cible`);
+    const color = h.exact ? '#3da35d' : (ecart !== null && ecart <= 10) ? '#b37400' : '#e54b64';
+
+    ctx.fillStyle = '#4a1525'; ctx.font = '14px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`#${h.num}  Cible ${h.cible}`, PAD, y);
+    ctx.fillStyle = color; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(label, W - PAD, y);
+  });
+
+  if(moyEcartCanvas !== null && toShare.length > 1) {
+    const yMoy = 76 + toShare.length * lineH + 28;
+    ctx.strokeStyle = 'rgba(255,182,193,0.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(PAD, yMoy - 10); ctx.lineTo(W-PAD, yMoy - 10); ctx.stroke();
+    ctx.fillStyle = 'rgba(74,21,37,0.5)'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('MOYENNE DES ÉCARTS', PAD, yMoy + 8);
+    ctx.fillStyle = '#ff69b4'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(moyEcartCanvas === 0 ? '💖' : String(moyEcartCanvas), W - PAD, yMoy + 8);
+  }
+
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'compte-est-bon-girly.png', {type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) { navigator.share({files:[file], title:'Le Compte est Bon 🌸'}).catch(()=>{}); }
+    else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'compte-est-bon-girly.png'; a.click(); URL.revokeObjectURL(url); }
+  }, 'image/png');
+}
+
+function clearTout() { etapes = []; valeursDispos = plaques.map(p=>({id:p.id, val:p.val})); selection = null; opSelection = null; document.getElementById('plaques-orig').innerHTML = ''; document.getElementById('plaques-inter').innerHTML = ''; document.getElementById('rc').textContent = ''; document.getElementById('rc').className = 'resultat-courant'; renderPlaques(); renderOps(); renderEtapes(); }
+function memoriser() {
+  if(etapes.length === 0) return; const dernierRes = etapes[etapes.length-1].res; const ecart = Math.abs(dernierRes - cible); const ecartMemo = meilleurMemorise !== null ? Math.abs(meilleurMemorise - cible) : Infinity;
+  if(ecart < ecartMemo) { meilleurMemorise = dernierRes; const btn = document.getElementById('btn-memoriser'); if(btn) { btn.textContent = `📌 ${dernierRes} (à ${ecart})`; btn.style.color = '#3da35d'; setTimeout(() => { btn.style.color = ''; btn.textContent = '📌 Mémoriser'; }, 2000); } renderEtapes(); }
+}
+
+function sauvegarderPartie(cible, meilleur, exact) {
+  partieSauvegardee = true; const jourData = getJourData(); jourData.current++; const num = jourData.current; jourData.parties.push({cible, meilleur, exact, num}); saveJourData(jourData);
+  const btn = document.getElementById('btn-nouveau'); if(btn) { btn.textContent = `↺ Partie ${jourData.current + 1}`; btn.style.display = ''; }
+  const btnMem = document.getElementById('btn-memoriser'); if(btnMem) { btnMem.style.display = 'none'; btnMem.textContent = '📌 Mémoriser'; }
+  const btnClear = document.getElementById('btn-clear'); if(btnClear) btnClear.style.display = 'none';
+  afficherHistorique();
+}
+
+function afficherHistorique() {
+  const jourData = getJourData(), displayHist = [...jourData.parties].reverse(), todayStr = getToday();
+  const wrap = document.getElementById('historique-wrap'), body = document.getElementById('historique-body');
+  wrap.style.display = displayHist.length ? 'block' : 'none';
+  const titre = document.getElementById('hist-titre'); if(titre) titre.innerHTML = `<span>Parties du jour · ${todayStr}</span><span style="letter-spacing:0">Écart</span>`;
+  
+  const partiesJouees = displayHist.filter(h => h.meilleur !== null), aDesAbandons = displayHist.some(h => h.meilleur === null);
+  const moyEcart = (!aDesAbandons && partiesJouees.length > 1) ? Math.round(partiesJouees.reduce((s,h) => s + Math.abs(h.meilleur - h.cible), 0) / partiesJouees.length) : null;
+
+  body.innerHTML = displayHist.map(h => {
+    const ecart = h.meilleur !== null ? Math.abs(h.meilleur - h.cible) : null;
+    const cls = h.exact ? 'hist-exact' : (ecart !== null && ecart <= 10) ? 'hist-approche' : 'hist-echec';
+    const gauche = h.exact ? `#${h.num} · Le compte est bon ! ✨` : (h.meilleur === null ? `#${h.num} · Abandon` : `#${h.num} · écart ${ecart}`);
+    const droite = h.exact ? `💖` : (h.meilleur === null ? `` : `${h.meilleur} vs ${h.cible}`);
+    return `<div class="hist-row"><span class="${cls}">${gauche}</span><span class="hist-cible">${droite}</span></div>`;
+  }).join('') + (moyEcart !== null && displayHist.length > 1 ? `<div class="hist-row" style="border-top:1px solid var(--rose-light);margin-top:.2rem"><span style="color:var(--dim);font-size:.65rem;letter-spacing:.05em">MOYENNE DES ÉCARTS</span><span style="color:var(--rose-accent);font-weight:700">${moyEcart === 0 ? '💖' : moyEcart}</span></div>` : '');
+}
+
+if('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
+document.getElementById('cible').innerHTML = '<div class="rouleau" style="color:rgba(74,21,37,.15)">0</div>'.repeat(3);
+if(muted) { document.getElementById('mute-btn').textContent = '🔇'; sndRouleaux.forEach(a => a.volume = 0); sndMusiques.forEach(a => a.volume = 0); }
+</script>
+</body>
+</html>
+
+```
