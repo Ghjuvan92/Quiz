@@ -309,9 +309,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--white);min-height:100vh;
   </div>
 
   <div class="actions">
-    <button class="btn-action" type="button" onclick="effacer()">⌫ Clear</button>
+    <button class="btn-action" type="button" onclick="effacer()">⌫ Effacer</button>
     <button class="btn-action" type="button" id="btn-nouveau" onclick="reset()">▶ Démarrer</button>
-    <button class="btn-action" type="button" id="btn-clear" onclick="clearTout()" style="display:none">✕ AC</button>
+    <button class="btn-action" type="button" id="btn-clear" onclick="clearTout()" style="display:none">✕ Clear</button>
     <button class="btn-action" type="button" id="btn-memoriser" onclick="memoriser()" style="display:none">📌 Mémoriser</button>
     <button class="btn-action primary" type="button" id="btn-solution" onclick="demanderSolution()" style="display:none">Solution</button>
   </div>
@@ -474,16 +474,15 @@ document.addEventListener('click', function debloquerRouleaux() {
 });
 
 function playRouleauSpin(idx, dureeMs) {
-  if(muted) return;
   const snd = sndRouleaux[idx];
   snd.currentTime = 0;
-  snd.volume = 0.9;
+  snd.volume = muted ? 0 : 0.9;
   const p = snd.play();
   if(p) p.catch(()=>{});
+  // Fade out à la fin
   setTimeout(() => {
     let vol = 0.9;
     const fade = setInterval(() => {
-      if(muted) { clearInterval(fade); try{snd.pause();}catch(e){} return; }
       vol = Math.max(0, vol - 0.09);
       try { snd.volume = vol; } catch(e){}
       if(vol <= 0) { clearInterval(fade); try{snd.pause();}catch(e){} }
@@ -824,14 +823,25 @@ function renderOps() {
 
 function renderEtapes() {
   const el = document.getElementById('etapes');
+  // Afficher le mémo en haut à droite si présent
   const memoHtml = meilleurMemorise !== null
     ? `<div style="text-align:right;font-family:'Share Tech Mono',monospace;font-size:.7rem;
         color:rgba(255,255,255,.45);margin-bottom:.3rem;font-style:normal">
         mémo : ${meilleurMemorise} <span style="color:rgba(255,255,255,.25)">(écart ${Math.abs(meilleurMemorise-cible)})</span>
        </div>` : '';
-  // Mettre à jour Mémoriser dans tous les cas, même si etapes vide
+  if(etapes.length===0){
+    el.innerHTML = memoHtml;
+    return;
+  }
+  // Vérifier si on a atteint la cible
+  el.innerHTML = memoHtml + etapes.map((e,i)=>`
+    <div class="etape-row">
+      <span class="etape-expr">${e.expr} <span>= ${e.res}</span></span>
+      <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
+    </div>`).join('');
+  // Afficher Mémoriser uniquement si le dernier résultat est meilleur que le mémo
   const btnMem = document.getElementById('btn-memoriser');
-  if(btnMem) {
+  if(btnMem && btnMem.style.display !== undefined) {
     if(etapes.length > 0) {
       const dernierRes = etapes[etapes.length-1].res;
       const ecartDernier = Math.abs(dernierRes - cible);
@@ -841,15 +851,6 @@ function renderEtapes() {
       btnMem.style.display = 'none';
     }
   }
-  if(etapes.length===0){
-    el.innerHTML = memoHtml;
-    return;
-  }
-  el.innerHTML = memoHtml + etapes.map((e,i)=>`
-    <div class="etape-row">
-      <span class="etape-expr">${e.expr} <span>= ${e.res}</span></span>
-      <button class="etape-del" onclick="supprimerEtape(${i})">✕</button>
-    </div>`).join('');
   const rc = document.getElementById('rc');
   if(valeursDispos.some(v=>v.val===cible)){
     rc.textContent='LE COMPTE EST BON !';
